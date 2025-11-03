@@ -13,7 +13,7 @@ import {
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { ArrowLeft, MoreVertical, MessageSquare, Phone, Mail, Clock, PlusCircle, X } from "lucide-react"
+import { ArrowLeft, MoreVertical, MessageSquare, Phone, Mail, Clock, PlusCircle, X, FilePlus, UserCheck, Tag, Info } from "lucide-react"
 import Link from "next/link"
 import { PlaceHolderImages } from "@/lib/placeholder-images"
 import {
@@ -56,6 +56,15 @@ const commonParts = [
     "Headlight", "Wing Mirror", "Alloy Wheel", "Brake Pads", "Catalytic Converter"
 ];
 
+const timelineEventIcons: { [key: string]: React.ReactNode } = {
+    'created': <FilePlus className="h-4 w-4" />,
+    'assigned': <UserCheck className="h-4 w-4" />,
+    'status': <Tag className="h-4 w-4" />,
+    'message_in': <MessageSquare className="h-4 w-4" />,
+    'message_out': <MessageSquare className="h-4 w-4" />,
+    'info': <Info className="h-4 w-4" />,
+};
+
 export default function TicketDetailsPage({ params }: { params: { id: string } }) {
   const [ticket, setTicket] = React.useState<Ticket | undefined>(tickets.find((t) => t.id === params.id));
   const [ticketMessages, setTicketMessages] = React.useState<Message[]>(messages.filter(m => m.ticketId === params.id));
@@ -65,6 +74,23 @@ export default function TicketDetailsPage({ params }: { params: { id: string } }
   if (!ticket) {
     notFound()
   }
+  
+  // Mock timeline data
+  const timelineEvents = [
+    { id: 'EVT-001', type: 'created', timestamp: ticket.createdAt, actor: 'System', details: `Ticket created via ${ticket.channel}` },
+    ...ticketMessages.map((msg, i) => ({
+      id: `EVT-MSG-${i}`,
+      type: msg.direction === 'inbound' ? 'message_in' : 'message_out',
+      timestamp: msg.createdAt,
+      actor: msg.senderName,
+      details: `${msg.direction === 'inbound' ? 'Received' : 'Sent'} message via ${msg.channel}`
+    })).sort((a,b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()),
+    { id: 'EVT-002', type: 'status', timestamp: '2024-07-28T11:35:00Z', actor: 'John Doe', details: `Status changed to 'In review'` },
+    { id: 'EVT-003', type: 'assigned', timestamp: '2024-07-28T11:35:00Z', actor: 'John Doe', details: `Assigned to User One` },
+    { id: 'EVT-004', type: 'info', timestamp: '2024-07-28T15:00:00Z', actor: 'System', details: 'SLA warning: 1 hour remaining' },
+  ].sort((a,b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+
+
 
   const customer = customers.find(c => c.id === ticket.customerId);
   const customerAvatar = PlaceHolderImages.find(p => p.id === 'customer-avatar-1');
@@ -194,11 +220,12 @@ export default function TicketDetailsPage({ params }: { params: { id: string } }
         {/* Right Column: Metadata */}
         <div className="lg:col-span-1 overflow-y-auto">
           <Tabs defaultValue="customer" className="w-full">
-            <TabsList className="grid w-full grid-cols-4">
+            <TabsList className="grid w-full grid-cols-5">
               <TabsTrigger value="summary">Summary</TabsTrigger>
               <TabsTrigger value="customer">Customer</TabsTrigger>
               <TabsTrigger value="vehicle">Vehicle</TabsTrigger>
               <TabsTrigger value="parts">Parts</TabsTrigger>
+              <TabsTrigger value="timeline">Timeline</TabsTrigger>
             </TabsList>
             <TabsContent value="summary">
               <Card>
@@ -305,7 +332,7 @@ export default function TicketDetailsPage({ params }: { params: { id: string } }
                     <Table>
                         <TableBody>
                             <TableRow><TableCell className="font-medium">Make</TableCell><TableCell>{ticket.vehicle.make}</TableCell></TableRow>
-                            <TableRow><TableCell className="font-medium">Model</TableCell><TableCell>{ticket.vehicle.model}</TableRow></TableRow>
+                            <TableRow><TableCell className="font-medium">Model</TableCell><TableCell>{ticket.vehicle.model}</TableCell></TableRow>
                             <TableRow><TableCell className="font-medium">Year</TableCell><TableCell>{ticket.vehicle.year}</TableCell></TableRow>
                             <TableRow><TableCell className="font-medium">Plate</TableCell><TableCell>{ticket.vehicle.plate}</TableCell></TableRow>
                         </TableBody>
@@ -360,6 +387,32 @@ export default function TicketDetailsPage({ params }: { params: { id: string } }
                 </CardContent>
               </Card>
             </TabsContent>
+            <TabsContent value="timeline">
+                <Card>
+                    <CardHeader>
+                        <CardTitle>Ticket Timeline</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        <ul className="space-y-6">
+                            {timelineEvents.map((event) => (
+                                <li key={event.id} className="flex gap-4">
+                                    <div className="flex h-8 w-8 items-center justify-center rounded-full bg-muted text-muted-foreground">
+                                        {timelineEventIcons[event.type] || <Info className="h-4 w-4" />}
+                                    </div>
+                                    <div className="flex-1 space-y-1">
+                                        <p className="text-sm font-medium">{event.details}</p>
+                                        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                                            <span>by {event.actor}</span>
+                                            <span>&middot;</span>
+                                            <span>{new Date(event.timestamp).toLocaleString()}</span>
+                                        </div>
+                                    </div>
+                                </li>
+                            ))}
+                        </ul>
+                    </CardContent>
+                </Card>
+            </TabsContent>
           </Tabs>
         </div>
       </div>
@@ -367,5 +420,7 @@ export default function TicketDetailsPage({ params }: { params: { id: string } }
     </div>
   )
 }
+
+    
 
     
