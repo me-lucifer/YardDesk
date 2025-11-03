@@ -16,6 +16,7 @@ import {
   Settings,
   HardHat,
   Star,
+  Users,
 } from "lucide-react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
@@ -23,6 +24,7 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 
 const menuItems = [
   { href: "/inbox", label: "Inbox", icon: Inbox },
+  { href: "/customers", label: "Customers", icon: Users },
   { href: "/analytics", label: "Analytics", icon: LineChart },
   { href: "/templates", label: "Templates", icon: FileText },
   { href: "/settings", label: "Settings", icon: Settings },
