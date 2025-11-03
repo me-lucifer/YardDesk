@@ -29,7 +29,7 @@ import {
   Mail,
   Phone,
 } from "lucide-react"
-import { templates, Ticket, Customer, Message, Channel, users } from "@/lib/store"
+import { Ticket, Customer, Message, Channel, users } from "@/lib/store"
 import {
   Select,
   SelectContent,
@@ -40,6 +40,7 @@ import {
 import { ScrollArea } from "./ui/scroll-area"
 import { Badge } from "./ui/badge"
 import React from "react"
+import { useAppState } from "@/lib/context/app-state-provider"
 
 interface ReplyComposerProps {
   ticket: Ticket
@@ -73,6 +74,7 @@ export const ReplyComposer = forwardRef<ReplyComposerRef, ReplyComposerProps>(({
   const [isDrawerOpen, setIsDrawerOpen] = useState(false)
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const currentUser = users[0]; // Assume current user
+  const { templates } = useAppState();
 
   useImperativeHandle(ref, () => ({
     setChannel: (newChannel: Channel) => {

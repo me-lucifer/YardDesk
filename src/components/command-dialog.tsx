@@ -1,3 +1,4 @@
+
 "use client"
 
 import React from "react"
@@ -11,7 +12,6 @@ import {
   Users,
 } from "lucide-react"
 
-import { customers, templates, tickets } from "@/lib/store"
 import {
   CommandDialog,
   CommandEmpty,
@@ -21,9 +21,11 @@ import {
   CommandList,
   CommandSeparator,
 } from "@/components/ui/command"
+import { useAppState } from "@/lib/context/app-state-provider"
 
 export function AppCommandDialog({ ...props }) {
   const router = useRouter()
+  const { tickets, customers, templates } = useAppState();
   const [open, setOpen] = React.useState(false)
 
   const runCommand = React.useCallback((command: () => unknown) => {

@@ -2,16 +2,18 @@
 "use client";
 
 import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
-import { tickets as initialTickets, messages as initialMessages, customers as initialCustomers, Ticket, Message, Customer } from '@/lib/store';
+import { tickets as initialTickets, messages as initialMessages, customers as initialCustomers, templates as initialTemplates, Ticket, Message, Customer, Template } from '@/lib/store';
 
 interface AppState {
   tickets: Ticket[];
   messages: Message[];
   customers: Customer[];
+  templates: Template[];
   addTicket: (ticket: Ticket) => void;
   updateTicket: (ticketId: string, updates: Partial<Ticket>) => void;
   addMessage: (message: Message) => void;
   addCustomer: (customer: Customer) => void;
+  addTemplate: (template: Template) => void;
   isLoading: boolean;
 }
 
@@ -21,6 +23,7 @@ export const AppStateProvider = ({ children }: { children: ReactNode }) => {
   const [tickets, setTickets] = useState<Ticket[]>([]);
   const [messages, setMessages] = useState<Message[]>([]);
   const [customers, setCustomers] = useState<Customer[]>([]);
+  const [templates, setTemplates] = useState<Template[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -29,6 +32,7 @@ export const AppStateProvider = ({ children }: { children: ReactNode }) => {
       setTickets(initialTickets);
       setMessages(initialMessages);
       setCustomers(initialCustomers);
+      setTemplates(initialTemplates);
       setIsLoading(false);
     }, 1000); // 1 second delay
 
@@ -55,8 +59,12 @@ export const AppStateProvider = ({ children }: { children: ReactNode }) => {
     })
   }
 
+  const addTemplate = (template: Template) => {
+    setTemplates(prev => [template, ...prev]);
+  };
+
   return (
-    <AppStateContext.Provider value={{ tickets, messages, customers, addTicket, updateTicket, addMessage, addCustomer, isLoading }}>
+    <AppStateContext.Provider value={{ tickets, messages, customers, templates, addTicket, updateTicket, addMessage, addCustomer, addTemplate, isLoading }}>
       {children}
     </AppStateContext.Provider>
   );
