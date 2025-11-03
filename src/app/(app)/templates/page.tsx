@@ -1,3 +1,4 @@
+
 import {
   Table,
   TableBody,
@@ -15,7 +16,7 @@ import {
   CardTitle,
   CardFooter
 } from "@/components/ui/card"
-import { templates } from "@/lib/mock-data"
+import { templates } from "@/lib/store"
 import { PlusCircle } from "lucide-react"
 
 export default function TemplatesPage() {
@@ -38,16 +39,16 @@ export default function TemplatesPage() {
             <TableHeader>
               <TableRow>
                 <TableHead>Name</TableHead>
-                <TableHead>Category</TableHead>
-                <TableHead className="text-right">Last Updated</TableHead>
+                <TableHead>Tags</TableHead>
+                <TableHead className="text-right">Variables</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {templates.map((template) => (
                 <TableRow key={template.id}>
                   <TableCell className="font-medium">{template.name}</TableCell>
-                  <TableCell>{template.category}</TableCell>
-                  <TableCell className="text-right">{template.lastUpdated}</TableCell>
+                  <TableCell>{template.tags.join(', ')}</TableCell>
+                  <TableCell className="text-right">{template.variables.join(', ')}</TableCell>
                 </TableRow>
               ))}
             </TableBody>
@@ -55,7 +56,7 @@ export default function TemplatesPage() {
         </CardContent>
         <CardFooter>
             <div className="text-xs text-muted-foreground">
-                Showing <strong>1-4</strong> of <strong>4</strong> templates.
+                Showing <strong>1-{templates.length}</strong> of <strong>{templates.length}</strong> templates.
             </div>
         </CardFooter>
       </Card>

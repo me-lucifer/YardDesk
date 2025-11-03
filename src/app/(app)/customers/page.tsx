@@ -1,3 +1,4 @@
+
 import Link from "next/link"
 import {
   Table,
@@ -14,10 +15,12 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
-import { customers } from "@/lib/mock-data"
+import { customers } from "@/lib/store"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { PlaceHolderImages } from "@/lib/placeholder-images"
 
 export default function CustomersPage() {
+    const customerAvatar = PlaceHolderImages.find(p => p.id === 'customer-avatar-1');
   return (
     <div className="space-y-6">
       <h1 className="text-3xl font-bold tracking-tight">Customers</h1>
@@ -31,10 +34,8 @@ export default function CustomersPage() {
             <TableHeader>
               <TableRow>
                 <TableHead>Name</TableHead>
-                <TableHead>Company</TableHead>
                 <TableHead>Email</TableHead>
                 <TableHead>Phone</TableHead>
-                <TableHead className="text-right">Joined</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -43,7 +44,7 @@ export default function CustomersPage() {
                   <TableCell>
                     <div className="flex items-center gap-3">
                       <Avatar className="h-9 w-9">
-                        <AvatarImage src={customer.avatar} alt={customer.name} data-ai-hint="person face" />
+                        {customerAvatar && <AvatarImage src={customerAvatar.imageUrl} alt={customer.name} data-ai-hint="person face" />}
                         <AvatarFallback>{customer.name.charAt(0)}</AvatarFallback>
                       </Avatar>
                       <Link href={`/customers/${customer.id}`} className="font-medium hover:underline text-primary">
@@ -51,10 +52,8 @@ export default function CustomersPage() {
                       </Link>
                     </div>
                   </TableCell>
-                  <TableCell>{customer.company}</TableCell>
                   <TableCell>{customer.email}</TableCell>
                   <TableCell>{customer.phone}</TableCell>
-                  <TableCell className="text-right">{customer.joined}</TableCell>
                 </TableRow>
               ))}
             </TableBody>

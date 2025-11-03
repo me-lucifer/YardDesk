@@ -1,3 +1,4 @@
+
 import Link from "next/link"
 import {
   Table,
@@ -15,7 +16,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
-import { tickets } from "@/lib/mock-data"
+import { tickets, customers } from "@/lib/store"
 import { cn } from "@/lib/utils"
 
 export default function InboxPage() {
@@ -39,34 +40,37 @@ export default function InboxPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {tickets.map((ticket) => (
+              {tickets.map((ticket) => {
+                  const customer = customers.find(c => c.id === ticket.customerId);
+                  return (
                 <TableRow key={ticket.id} className="cursor-pointer">
                   <TableCell className="font-medium">
                     <Link href={`/ticket/${ticket.id}`} className="hover:underline text-primary">{ticket.id}</Link>
                   </TableCell>
-                  <TableCell>{ticket.customer.name}</TableCell>
-                  <TableCell>{ticket.subject}</TableCell>
+                  <TableCell>{customer?.name}</TableCell>
+                  <TableCell>{ticket.lastMessagePreview}</TableCell>
                   <TableCell>
                     <Badge
                       variant={
-                        ticket.status === "Open"
+                        ticket.status === "New"
                           ? "default"
-                          : ticket.status === "In Progress"
+                          : ticket.status === "In review"
                           ? "secondary"
                           : "outline"
                       }
                       className={cn(
-                        ticket.status === "Open" && "bg-emerald-500/20 text-emerald-500 border-emerald-500/20",
-                        ticket.status === "In Progress" && "bg-blue-500/20 text-blue-500 border-blue-500/20",
+                        ticket.status === "New" && "bg-emerald-500/20 text-emerald-500 border-emerald-500/20",
+                        ticket.status === "In review" && "bg-blue-500/20 text-blue-500 border-blue-500/20",
                         "dark:text-white"
                       )}
                     >
                       {ticket.status}
                     </Badge>
                   </TableCell>
-                  <TableCell className="text-right">{ticket.lastUpdated}</TableCell>
+                  <TableCell className="text-right">{new Date(ticket.updatedAt).toLocaleDateString()}</TableCell>
                 </TableRow>
-              ))}
+                  )
+            })}
             </TableBody>
           </Table>
         </CardContent>

@@ -14,7 +14,7 @@ import {
   ChartLegend,
   ChartLegendContent,
 } from "@/components/ui/chart"
-import { analyticsData } from "@/lib/mock-data"
+import { analyticsData } from "@/lib/store"
 import { Bar, BarChart, CartesianGrid, XAxis, Pie, PieChart, Cell } from "recharts"
 
 const barChartConfig = {
