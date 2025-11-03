@@ -8,11 +8,12 @@ import {
   CardContent,
   CardHeader,
   CardTitle,
+  CardDescription
 } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { ArrowLeft, MoreVertical, MessageSquare, Phone, Mail, Clock } from "lucide-react"
+import { ArrowLeft, MoreVertical, MessageSquare, Phone, Mail, Clock, PlusCircle, X } from "lucide-react"
 import Link from "next/link"
 import { PlaceHolderImages } from "@/lib/placeholder-images"
 import {
@@ -41,6 +42,7 @@ import { Label } from "@/components/ui/label"
 import { Switch } from "@/components/ui/switch"
 import { Textarea } from "@/components/ui/textarea"
 import { cn } from "@/lib/utils"
+import { Input } from "@/components/ui/input"
 
 const channelIcons: { [key: string]: React.ReactNode } = {
   SMS: <MessageSquare className="h-4 w-4 text-muted-foreground" />,
@@ -49,9 +51,15 @@ const channelIcons: { [key: string]: React.ReactNode } = {
   Email: <Mail className="h-4 w-4 text-muted-foreground" />,
 }
 
+const commonParts = [
+    "Alternator", "Starter Motor", "Radiator", "Front Bumper",
+    "Headlight", "Wing Mirror", "Alloy Wheel", "Brake Pads", "Catalytic Converter"
+];
+
 export default function TicketDetailsPage({ params }: { params: { id: string } }) {
   const [ticket, setTicket] = React.useState<Ticket | undefined>(tickets.find((t) => t.id === params.id));
   const [ticketMessages, setTicketMessages] = React.useState<Message[]>(messages.filter(m => m.ticketId === params.id));
+  const [requestedParts, setRequestedParts] = React.useState(ticket?.parts || []);
   const replyComposerRef = React.useRef<ReplyComposerRef>(null);
 
   if (!ticket) {
@@ -70,8 +78,23 @@ export default function TicketDetailsPage({ params }: { params: { id: string } }
         senderName: "YardDesk"
     }
     setTicketMessages(prev => [...prev, messageToAdd]);
-    setTicket(prev => prev ? {...prev, updatedAt: new Date().toISOString()} : undefined);
+    setTicket(prev => prev ? {...prev, updatedAt: new Date().toISOString(), parts: requestedParts} : undefined);
   };
+  
+  const handlePartChange = (index: number, value: string) => {
+    const newParts = [...requestedParts];
+    newParts[index] = value;
+    setRequestedParts(newParts);
+  };
+
+  const handleAddPart = (part?: string) => {
+    setRequestedParts([...requestedParts, part || ""]);
+  };
+
+  const handleRemovePart = (index: number) => {
+    setRequestedParts(requestedParts.filter((_, i) => i !== index));
+  };
+
 
   const handleSendSmsClick = () => {
     replyComposerRef.current?.setChannel('SMS');
@@ -96,7 +119,7 @@ export default function TicketDetailsPage({ params }: { params: { id: string } }
        <div className="flex-shrink-0 py-4">
             <div className="flex justify-between items-start">
                 <div>
-                <h1 className="text-2xl font-bold tracking-tight">{ticket.vehicle.year} {ticket.vehicle.make} {ticket.vehicle.model} - {ticket.parts.join(', ')}</h1>
+                <h1 className="text-2xl font-bold tracking-tight">{ticket.vehicle.year} {ticket.vehicle.make} {ticket.vehicle.model} - {requestedParts.join(', ')}</h1>
                 <p className="text-sm text-muted-foreground">
                     Ticket ID: {ticket.id}
                 </p>
@@ -278,25 +301,62 @@ export default function TicketDetailsPage({ params }: { params: { id: string } }
             <TabsContent value="vehicle">
               <Card>
                 <CardHeader><CardTitle>Vehicle Information</CardTitle></CardHeader>
-                <CardContent>
+                <CardContent className="space-y-4">
                     <Table>
                         <TableBody>
                             <TableRow><TableCell className="font-medium">Make</TableCell><TableCell>{ticket.vehicle.make}</TableCell></TableRow>
-                            <TableRow><TableCell className="font-medium">Model</TableCell><TableCell>{ticket.vehicle.model}</TableCell></TableRow>
+                            <TableRow><TableCell className="font-medium">Model</TableCell><TableCell>{ticket.vehicle.model}</TableRow></TableRow>
                             <TableRow><TableCell className="font-medium">Year</TableCell><TableCell>{ticket.vehicle.year}</TableCell></TableRow>
                             <TableRow><TableCell className="font-medium">Plate</TableCell><TableCell>{ticket.vehicle.plate}</TableCell></TableRow>
                         </TableBody>
                     </Table>
+                    <div className="space-y-2">
+                        <Label htmlFor="vin">VIN</Label>
+                        <Input id="vin" placeholder="Enter VIN..." />
+                        <p className="text-xs text-muted-foreground">The VIN can be decoded later to confirm vehicle details.</p>
+                    </div>
                 </CardContent>
               </Card>
             </TabsContent>
             <TabsContent value="parts">
               <Card>
-                <CardHeader><CardTitle>Requested Parts</CardTitle></CardHeader>
-                <CardContent>
-                    <ul className="list-disc list-inside space-y-2">
-                        {ticket.parts.map(part => <li key={part}>{part}</li>)}
-                    </ul>
+                <CardHeader>
+                    <CardTitle>Requested Parts</CardTitle>
+                    <CardDescription>Parts requested by the customer.</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                    <div className="space-y-2">
+                        {requestedParts.map((part, index) => (
+                            <div key={index} className="flex items-center gap-2">
+                                <Input 
+                                    value={part} 
+                                    onChange={(e) => handlePartChange(index, e.target.value)}
+                                    className="flex-1"
+                                />
+                                <Badge variant="secondary">95%</Badge>
+                                <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleRemovePart(index)}>
+                                    <X className="h-4 w-4" />
+                                </Button>
+                            </div>
+                        ))}
+                         <Button variant="outline" size="sm" onClick={() => handleAddPart()}>
+                            <PlusCircle className="mr-2 h-4 w-4" /> Add Part
+                        </Button>
+                    </div>
+                    <div>
+                        <h4 className="text-sm font-medium mb-2 text-muted-foreground">Common Parts</h4>
+                        <div className="flex flex-wrap gap-2">
+                            {commonParts.map(part => (
+                                <button
+                                    key={part}
+                                    onClick={() => handleAddPart(part)}
+                                    className="px-2 py-1 text-xs rounded-full bg-muted text-muted-foreground hover:bg-secondary transition-colors"
+                                >
+                                    {part}
+                                </button>
+                            ))}
+                        </div>
+                    </div>
                 </CardContent>
               </Card>
             </TabsContent>
@@ -307,3 +367,5 @@ export default function TicketDetailsPage({ params }: { params: { id: string } }
     </div>
   )
 }
+
+    
