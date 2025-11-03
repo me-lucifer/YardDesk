@@ -106,13 +106,6 @@ export default function InboxPage() {
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <h1 className="text-3xl font-bold tracking-tight">Inbox</h1>
-        <div className="flex items-center gap-2">
-            {savedViews.map((view, index) => (
-                <Button key={view} variant={index === 0 ? "secondary" : "ghost"}>
-                    {view}
-                </Button>
-            ))}
-        </div>
       </div>
        <Card>
         <CardHeader>
@@ -185,7 +178,7 @@ export default function InboxPage() {
                   const assignedUser = users.find(u => u.id === ticket.assignedToUserId);
                   const userAvatarMeta = PlaceHolderImages.find(p => p.id === assignedUser?.avatarUrl);
                   return (
-                <TableRow key={ticket.id} className="cursor-pointer">
+                <TableRow key={ticket.id} className="cursor-pointer" onClick={() => window.location.href=`/ticket/${ticket.id}`}>
                   <TableCell>
                     <Badge
                       variant={

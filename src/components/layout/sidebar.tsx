@@ -17,6 +17,9 @@ import {
   HardHat,
   Star,
   Users,
+  AlertTriangle,
+  Clock,
+  User,
 } from "lucide-react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
@@ -31,18 +34,20 @@ const menuItems = [
 ]
 
 const savedViews = [
-    { href: "/views/unread", label: "Unread" },
-    { href: "/views/assigned-to-me", label: "Assigned to Me" },
-    { href: "/views/high-priority", label: "High Priority" },
+    { href: "/views/all", label: "All", icon: Inbox },
+    { href: "/views/new-today", label: "New Today", icon: Star },
+    { href: "/views/waiting-info", label: "Waiting Info", icon: Clock },
+    { href: "/views/breaching-sla", label: "Breaching SLA", icon: AlertTriangle },
+    { href: "/views/my-tickets", label: "My Tickets", icon: User },
 ]
 
 export function AppSidebar() {
   const pathname = usePathname()
 
   const isActive = (path: string) => {
-    if (path === '/inbox') return pathname.startsWith('/inbox') || pathname.startsWith('/ticket');
+    if (path === '/inbox') return pathname.startsWith('/inbox') || pathname.startsWith('/ticket') || pathname === '/views/all';
     if (path === '/customers') return pathname.startsWith('/customers');
-    if (path === '/views') return pathname.startsWith('/views');
+    if (path.startsWith('/views')) return pathname === path;
     return pathname.startsWith(path)
   }
 
@@ -81,7 +86,7 @@ export function AppSidebar() {
                                  <SidebarMenuItem key={view.label}>
                                      <SidebarMenuButton asChild variant="ghost" className="h-8 justify-start" isActive={pathname === view.href}>
                                          <Link href={view.href}>
-                                            <Star className="w-3.5 h-3.5 mr-2" />
+                                            <view.icon className="w-3.5 h-3.5 mr-2" />
                                              <span>{view.label}</span>
                                          </Link>
                                      </SidebarMenuButton>
