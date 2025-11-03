@@ -24,7 +24,8 @@ import { ArrowLeft } from "lucide-react"
 import { PlaceHolderImages } from "@/lib/placeholder-images"
 
 export default function CustomerDetailPage({ params }: { params: { id: string } }) {
-  const customer = customers.find((c) => c.id === params.id)
+  const id = params.id;
+  const customer = customers.find((c) => c.id === id)
   if (!customer) {
     notFound()
   }
@@ -106,3 +107,5 @@ export default function CustomerDetailPage({ params }: { params: { id: string } 
     </div>
   )
 }
+
+    

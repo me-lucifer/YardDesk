@@ -506,3 +506,5 @@ export default function TicketDetailsPage({ params }: { params: { id: string } }
     </div>
   )
 }
+
+    
