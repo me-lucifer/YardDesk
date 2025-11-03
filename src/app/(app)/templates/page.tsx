@@ -1,4 +1,7 @@
 
+"use client"
+
+import * as React from "react"
 import {
   Table,
   TableBody,
@@ -16,11 +19,21 @@ import {
   CardTitle,
   CardFooter
 } from "@/components/ui/card"
-import { templates } from "@/lib/store"
+import { templates, Template } from "@/lib/store"
 import { PlusCircle, FileText } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@/components/ui/dialog"
 
 export default function TemplatesPage() {
+  const [selectedTemplate, setSelectedTemplate] = React.useState<Template | null>(null);
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
@@ -48,7 +61,7 @@ export default function TemplatesPage() {
               </TableHeader>
               <TableBody>
                 {templates.map((template) => (
-                  <TableRow key={template.id} className="cursor-pointer hover:bg-muted/50">
+                  <TableRow key={template.id} className="cursor-pointer hover:bg-muted/50" onClick={() => setSelectedTemplate(template)}>
                     <TableCell className="font-medium">{template.name}</TableCell>
                     <TableCell className="text-muted-foreground truncate max-w-sm line-clamp-1">{template.body}</TableCell>
                     <TableCell>
@@ -83,6 +96,42 @@ export default function TemplatesPage() {
           </CardFooter>
         )}
       </Card>
+      {selectedTemplate && (
+         <Dialog open={!!selectedTemplate} onOpenChange={(isOpen) => !isOpen && setSelectedTemplate(null)}>
+            <DialogContent>
+                <DialogHeader>
+                    <DialogTitle>{selectedTemplate.name}</DialogTitle>
+                    <DialogDescription>
+                        Template details.
+                    </DialogDescription>
+                </DialogHeader>
+                <div className="space-y-4">
+                    <div>
+                        <h4 className="text-sm font-medium text-muted-foreground">Preview</h4>
+                        <p className="mt-1 text-sm p-4 bg-muted rounded-md">{selectedTemplate.body}</p>
+                    </div>
+                     <div>
+                        <h4 className="text-sm font-medium text-muted-foreground">Tags</h4>
+                        <div className="flex gap-2 mt-1">
+                            {selectedTemplate.tags.map(tag => <Badge key={tag} variant="secondary">{tag}</Badge>)}
+                        </div>
+                    </div>
+                     <div>
+                        <h4 className="text-sm font-medium text-muted-foreground">Variables</h4>
+                        <div className="flex gap-2 flex-wrap mt-1">
+                            {selectedTemplate.variables.map(variable => (
+                                <code key={variable} className="text-xs bg-muted text-muted-foreground px-2 py-1 rounded-sm">{`{{${variable}}}`}</code>
+                            ))}
+                        </div>
+                    </div>
+                </div>
+                <DialogFooter>
+                    <Button variant="outline" onClick={() => setSelectedTemplate(null)}>Close</Button>
+                    <Button>Edit Template</Button>
+                </DialogFooter>
+            </DialogContent>
+         </Dialog>
+      )}
     </div>
   )
 }
