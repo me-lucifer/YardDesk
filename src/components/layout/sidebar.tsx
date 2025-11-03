@@ -12,19 +12,26 @@ import {
 import {
   Inbox,
   FileText,
-  Users,
   LineChart,
   Settings,
   HardHat,
+  Star,
 } from "lucide-react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
 
 const menuItems = [
   { href: "/inbox", label: "Inbox", icon: Inbox },
-  { href: "/templates", label: "Templates", icon: FileText },
-  { href: "/customers", label: "Customers", icon: Users },
   { href: "/analytics", label: "Analytics", icon: LineChart },
+  { href: "/templates", label: "Templates", icon: FileText },
+  { href: "/settings", label: "Settings", icon: Settings },
+]
+
+const savedViews = [
+    { href: "/views/unread", label: "Unread" },
+    { href: "/views/assigned-to-me", label: "Assigned to Me" },
+    { href: "/views/high-priority", label: "High Priority" },
 ]
 
 export function AppSidebar() {
@@ -33,6 +40,7 @@ export function AppSidebar() {
   const isActive = (path: string) => {
     if (path === '/inbox') return pathname.startsWith('/inbox') || pathname.startsWith('/ticket');
     if (path === '/customers') return pathname.startsWith('/customers');
+    if (path === '/views') return pathname.startsWith('/views');
     return pathname.startsWith(path)
   }
 
@@ -61,22 +69,29 @@ export function AppSidebar() {
             </SidebarMenuItem>
           ))}
         </SidebarMenu>
+        <div className="px-4 mt-4">
+             <Accordion type="single" collapsible defaultValue="saved-views">
+                <AccordionItem value="saved-views" className="border-none">
+                    <AccordionTrigger className="text-sm font-medium text-muted-foreground hover:no-underline py-2">Saved Views</AccordionTrigger>
+                    <AccordionContent>
+                        <SidebarMenu>
+                            {savedViews.map(view => (
+                                 <SidebarMenuItem key={view.label}>
+                                     <SidebarMenuButton asChild variant="ghost" className="h-8 justify-start" isActive={pathname === view.href}>
+                                         <Link href={view.href}>
+                                            <Star className="w-3.5 h-3.5 mr-2" />
+                                             <span>{view.label}</span>
+                                         </Link>
+                                     </SidebarMenuButton>
+                                 </SidebarMenuItem>
+                            ))}
+                        </SidebarMenu>
+                    </AccordionContent>
+                </AccordionItem>
+            </Accordion>
+        </div>
       </SidebarContent>
       <SidebarFooter>
-        <SidebarMenu>
-          <SidebarMenuItem>
-            <SidebarMenuButton
-              asChild
-              isActive={pathname.startsWith("/settings")}
-              tooltip="Settings"
-            >
-              <Link href="/settings">
-                <Settings />
-                <span>Settings</span>
-              </Link>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-        </SidebarMenu>
       </SidebarFooter>
     </Sidebar>
   )
