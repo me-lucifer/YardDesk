@@ -1,20 +1,18 @@
 
-import { tickets, customers, messages } from "@/lib/store"
+"use client"
+
+import { tickets, customers, messages, Message, Ticket } from "@/lib/store"
 import { notFound } from "next/navigation"
 import {
   Card,
   CardContent,
-  CardDescription,
   CardHeader,
   CardTitle,
-  CardFooter
 } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Separator } from "@/components/ui/separator"
 import { Button } from "@/components/ui/button"
-import { Textarea } from "@/components/ui/textarea"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { ArrowLeft, Send, MoreVertical, MessageSquare, Phone, Mail, User, Car, Wrench, Clock, Paperclip } from "lucide-react"
+import { ArrowLeft, MoreVertical, MessageSquare, Phone, Mail, Clock } from "lucide-react"
 import Link from "next/link"
 import { PlaceHolderImages } from "@/lib/placeholder-images"
 import {
@@ -37,6 +35,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
+import { ReplyComposer } from "@/components/reply-composer"
+import React from "react"
 
 const channelIcons: { [key: string]: React.ReactNode } = {
   SMS: <MessageSquare className="h-4 w-4 text-muted-foreground" />,
@@ -46,15 +46,28 @@ const channelIcons: { [key: string]: React.ReactNode } = {
 }
 
 export default function TicketDetailsPage({ params }: { params: { id: string } }) {
-  const ticket = tickets.find((t) => t.id === params.id)
+  const [ticket, setTicket] = React.useState<Ticket | undefined>(tickets.find((t) => t.id === params.id));
+  const [ticketMessages, setTicketMessages] = React.useState<Message[]>(messages.filter(m => m.ticketId === params.id));
+
   if (!ticket) {
     notFound()
   }
 
   const customer = customers.find(c => c.id === ticket.customerId);
-  const ticketMessages = messages.filter(m => m.ticketId === ticket.id);
   const customerAvatar = PlaceHolderImages.find(p => p.id === 'customer-avatar-1');
   const userAvatar = PlaceHolderImages.find(p => p.id === 'user-avatar-1');
+
+  const handleSendMessage = (newMessage: Omit<Message, 'id' | 'createdAt' | 'senderName'>) => {
+    const messageToAdd: Message = {
+        ...newMessage,
+        id: `MSG-${Date.now()}`,
+        createdAt: new Date().toISOString(),
+        senderName: "YardDesk"
+    }
+    setTicketMessages(prev => [...prev, messageToAdd]);
+    setTicket(prev => prev ? {...prev, updatedAt: new Date().toISOString()} : undefined);
+  };
+
 
   return (
     <div className="flex flex-col h-full">
@@ -125,7 +138,7 @@ export default function TicketDetailsPage({ params }: { params: { id: string } }
                                     <p className="text-xs text-muted-foreground">{new Date(message.createdAt).toLocaleString()}</p>
                                 </div>
                                 <div className={`p-3 rounded-lg ${message.direction === 'inbound' ? 'bg-muted' : 'bg-primary text-primary-foreground'}`}>
-                                    <p className="text-sm">{message.body}</p>
+                                    <p className="text-sm whitespace-pre-wrap">{message.body}</p>
                                     {message.media && message.media.length > 0 && (
                                         <div className={`mt-2 flex gap-2 ${message.direction === 'outbound' ? 'justify-end' : ''}`}>
                                             {message.media.map((url, index) => (
@@ -233,19 +246,7 @@ export default function TicketDetailsPage({ params }: { params: { id: string } }
           </Tabs>
         </div>
       </div>
-       <div className="flex-shrink-0 mt-auto pt-4 pb-2 bg-background sticky bottom-0">
-         <Card>
-            <CardContent className="p-2">
-                 <div className="w-full flex items-center gap-2">
-                    <Textarea placeholder="Type your reply here..." className="flex-1 border-0 focus-visible:ring-0" />
-                    <Button>
-                        <Send className="h-4 w-4 mr-2" />
-                        Reply
-                    </Button>
-                </div>
-            </CardContent>
-         </Card>
-      </div>
+       <ReplyComposer ticket={ticket} customer={customer} onSendMessage={handleSendMessage} />
     </div>
   )
 }
