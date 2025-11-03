@@ -16,7 +16,7 @@ import {
   CardContent,
   CardHeader,
 } from "@/components/ui/card"
-import { tickets as initialTickets, customers, users, Ticket, Message, messages as initialMessages } from "@/lib/store"
+import { customers, users, Ticket, Message } from "@/lib/store"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -25,6 +25,7 @@ import { ListFilter, Search, MessageSquare, Phone, Mail, Car, Clock } from "luci
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar"
 import { PlaceHolderImages } from "@/lib/placeholder-images"
 import React from "react"
+import { useAppState } from "@/lib/context/app-state-provider"
 
 const channelIcons = {
   SMS: <MessageSquare className="h-4 w-4 text-muted-foreground" />,
@@ -40,8 +41,7 @@ const availabilityClasses = {
 }
 
 export default function InboxPage() {
-  const [tickets, setTickets] = React.useState<Ticket[]>(initialTickets);
-  const [messages, setMessages] = React.useState<Message[]>(initialMessages);
+  const { tickets, addTicket, addMessage } = useAppState();
   
   const savedViews = ["All", "New Today", "Waiting Info", "Breaching SLA", "Assigned to me"];
 
@@ -76,8 +76,8 @@ export default function InboxPage() {
       senderName: customer?.name || "Unknown Customer"
     };
 
-    setTickets(prevTickets => [newTicket, ...prevTickets]);
-    setMessages(prevMessages => [...prevMessages, newMessage]);
+    addTicket(newTicket);
+    addMessage(newMessage);
   };
 
   return (

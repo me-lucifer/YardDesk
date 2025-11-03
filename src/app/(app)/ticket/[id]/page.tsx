@@ -46,6 +46,7 @@ import { Switch } from "@/components/ui/switch"
 import { Textarea } from "@/components/ui/textarea"
 import { cn } from "@/lib/utils"
 import { Input } from "@/components/ui/input"
+import { useAppState } from "@/lib/context/app-state-provider"
 
 const channelIcons: { [key: string]: React.ReactNode } = {
   SMS: <MessageSquare className="h-4 w-4 text-muted-foreground" />,
@@ -69,13 +70,11 @@ const timelineEventIcons: { [key: string]: React.ReactNode } = {
 };
 
 export default function TicketDetailsPage({ params }: { params: { id: string } }) {
-  const router = useRouter();
-  const [allTickets, setAllTickets] = React.useState<Ticket[]>(initialTickets);
-  const [allMessages, setAllMessages] = React.useState<Message[]>(initialMessages);
-  
-  const ticket = allTickets.find((t) => t.id === params.id);
-  const ticketMessages = allMessages.filter(m => m.ticketId === params.id);
-  
+  const { tickets, messages, updateTicket, addMessage } = useAppState();
+
+  const ticket = tickets.find((t) => t.id === params.id);
+  const ticketMessages = messages.filter(m => m.ticketId === params.id);
+
   const [requestedParts, setRequestedParts] = React.useState(ticket?.parts || []);
   const replyComposerRef = React.useRef<ReplyComposerRef>(null);
 
@@ -86,31 +85,15 @@ export default function TicketDetailsPage({ params }: { params: { id: string } }
   }, [ticket]);
 
   if (!ticket) {
-    // This could be a new ticket from simulation, wait for state update
-    // Or just not found. For now, we assume not found if it's not in the initial load.
-    // A better implementation would use a global state manager.
-    React.useEffect(() => {
-      if (!initialTickets.find(t => t.id === params.id)) {
-        // A simple check to see if it was ever a valid ticket
-         // notFound();
-      }
-    }, [params.id]);
-    
-    // To prevent flicker on new ticket creation
-    const isNewTicket = params.id.startsWith('TKT-');
-    if (!ticket && !isNewTicket) {
-      return notFound();
-    }
-    if (!ticket) {
-        return (
-            <div className="flex h-full items-center justify-center">
-                <div className="text-center">
-                    <p className="text-lg font-semibold">Loading ticket...</p>
-                    <p className="text-muted-foreground">Or ticket could not be found.</p>
-                </div>
+    // A better implementation would use a global state manager or fetch from a server.
+    return (
+        <div className="flex h-full items-center justify-center">
+            <div className="text-center">
+                <p className="text-lg font-semibold">Loading ticket...</p>
+                <p className="text-muted-foreground">Or ticket could not be found.</p>
             </div>
-        );
-    }
+        </div>
+    );
   }
   
   // Mock timeline data
@@ -135,20 +118,15 @@ export default function TicketDetailsPage({ params }: { params: { id: string } }
   const assignedUser = users.find(u => u.id === ticket.assignedToUserId);
   const userAvatar = PlaceHolderImages.find(p => p.id === assignedUser?.avatarUrl);
 
-  const updateTicketState = (ticketId: string, updates: Partial<Ticket>) => {
-     setAllTickets(prev => prev.map(t => t.id === ticketId ? {...t, ...updates} : t));
-  };
-
-
   const handleSendMessage = (newMessage: Omit<Message, 'id' | 'createdAt' | 'senderName'>) => {
     const messageToAdd: Message = {
         ...newMessage,
         id: `MSG-${Date.now()}`,
         createdAt: new Date().toISOString(),
-        senderName: "YardDesk"
+        senderName: "YardDesk" // Represents the current user/business
     }
-    setAllMessages(prev => [...prev, messageToAdd]);
-    updateTicketState(ticket.id, { updatedAt: new Date().toISOString(), parts: requestedParts });
+    addMessage(messageToAdd);
+    updateTicket(ticket.id, { updatedAt: new Date().toISOString(), parts: requestedParts });
   };
   
   const handlePartChange = (index: number, value: string) => {
@@ -173,11 +151,11 @@ export default function TicketDetailsPage({ params }: { params: { id: string } }
 
   const getCustomerPreviousTickets = (customer: Customer | undefined) => {
     if (!customer) return [];
-    return allTickets.filter(t => t.customerId === customer.id && t.id !== ticket?.id);
+    return tickets.filter(t => t.customerId === customer.id && t.id !== ticket?.id);
   }
 
   const handleAssignUser = (userId: string) => {
-    updateTicketState(ticket.id, { assignedToUserId: userId });
+    updateTicket(ticket.id, { assignedToUserId: userId });
   };
 
   return (
