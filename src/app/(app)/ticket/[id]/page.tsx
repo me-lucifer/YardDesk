@@ -1,4 +1,5 @@
 
+
 "use client"
 
 import { tickets as initialTickets, customers, messages as initialMessages, Message, Ticket, Customer, users, User } from "@/lib/store"
@@ -96,7 +97,7 @@ export default function TicketDetailsPage({ params }: { params: { id: string } }
   const { tickets, messages, updateTicket, addMessage, isLoading } = useAppState();
 
   const ticket = tickets.find((t) => t.id === params.id);
-  const ticketMessages = messages.filter(m => m.ticketId === params.id);
+  const ticketMessages = messages.filter(m => m.ticketId === params.id).sort((a,b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
 
   const [requestedParts, setRequestedParts] = React.useState(ticket?.parts || []);
   const replyComposerRef = React.useRef<ReplyComposerRef>(null);
@@ -131,7 +132,7 @@ export default function TicketDetailsPage({ params }: { params: { id: string } }
       timestamp: msg.createdAt,
       actor: msg.senderName,
       details: `${msg.direction === 'inbound' ? 'Received' : 'Sent'} message via ${msg.channel}`
-    })).sort((a,b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()),
+    })),
     { id: 'EVT-002', type: 'status', timestamp: '2024-07-28T11:35:00Z', actor: 'John Doe', details: `Status changed to 'In review'` },
     { id: 'EVT-003', type: 'assigned', timestamp: '2024-07-28T11:35:00Z', actor: 'John Doe', details: `Assigned to User One` },
     { id: 'EVT-004', type: 'info', timestamp: '2024-07-28T15:00:00Z', actor: 'System', details: 'SLA warning: 1 hour remaining' },
@@ -391,6 +392,7 @@ export default function TicketDetailsPage({ params }: { params: { id: string } }
                                                   className={cn(
                                                     prevTicket.status === 'New' && "bg-emerald-500/20 text-emerald-500 border-emerald-500/20",
                                                     prevTicket.status === 'In review' && "bg-blue-500/20 text-blue-500 border-blue-500/20",
+                                                    prevTicket.status === "Breaching SLA" && "bg-destructive/20 text-destructive border-destructive/20",
                                                     "dark:text-white"
                                                   )}
                                                 >

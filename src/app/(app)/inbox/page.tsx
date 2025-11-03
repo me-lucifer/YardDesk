@@ -1,4 +1,5 @@
 
+
 "use client"
 
 import Link from "next/link"
@@ -192,6 +193,7 @@ export default function InboxPage() {
                       className={cn(
                         ticket.status === "New" && "bg-emerald-500/20 text-emerald-500 border-emerald-500/20",
                         ticket.status === "In review" && "bg-blue-500/20 text-blue-500 border-blue-500/20",
+                        ticket.status === "Breaching SLA" && "bg-destructive/20 text-destructive border-destructive/20",
                         "dark:text-white"
                       )}
                     >
