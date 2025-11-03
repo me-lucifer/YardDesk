@@ -18,6 +18,7 @@ import {
 } from "@/components/ui/card"
 import { templates } from "@/lib/store"
 import { PlusCircle } from "lucide-react"
+import { Badge } from "@/components/ui/badge"
 
 export default function TemplatesPage() {
   return (
@@ -39,16 +40,24 @@ export default function TemplatesPage() {
             <TableHeader>
               <TableRow>
                 <TableHead>Name</TableHead>
+                <TableHead>Preview</TableHead>
                 <TableHead>Tags</TableHead>
                 <TableHead className="text-right">Variables</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {templates.map((template) => (
-                <TableRow key={template.id}>
+                <TableRow key={template.id} className="cursor-pointer hover:bg-muted/50">
                   <TableCell className="font-medium">{template.name}</TableCell>
-                  <TableCell>{template.tags.join(', ')}</TableCell>
-                  <TableCell className="text-right">{template.variables.join(', ')}</TableCell>
+                  <TableCell className="text-muted-foreground truncate max-w-sm">{template.body}</TableCell>
+                  <TableCell>
+                    <div className="flex gap-1">
+                        {template.tags.map(tag => <Badge key={tag} variant="secondary">{tag}</Badge>)}
+                    </div>
+                  </TableCell>
+                  <TableCell className="text-right text-xs text-muted-foreground">
+                    {template.variables.map(v => `{{${v}}}`).join(', ')}
+                  </TableCell>
                 </TableRow>
               ))}
             </TableBody>

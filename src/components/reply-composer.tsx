@@ -55,7 +55,7 @@ const channelIcons: { [key: string]: React.ReactNode } = {
 
 const quickChips = [
     { label: "Need VIN", text: "To ensure we get the right part, could you please provide the vehicle's VIN?" },
-    { label: "Price quote", text: "The price for the {{part}} is £{{price}} + VAT." },
+    { label: "Price quote", text: "The price for the {{parts}} is £{{price}} + VAT." },
     { label: "Request photos", text: "Could you please send some photos of the part you need?" },
     { label: "Out of stock—alternatives", text: "Unfortunately, that part is out of stock. We do have alternatives available if you're interested." },
 ]
@@ -76,12 +76,21 @@ export function ReplyComposer({ ticket, customer, onSendMessage }: ReplyComposer
     newBody = newBody.replace(/{{plate}}/g, ticket.vehicle.plate);
     newBody = newBody.replace(/{{parts}}/g, ticket.parts.join(', '));
     
+    // For variables we don't have data for yet, we leave the placeholder
+    // e.g. {{price}} or {{eta}}
+    
     setMessage(currentMessage => currentMessage ? `${currentMessage}\n${newBody}` : newBody);
     setIsDrawerOpen(false);
   }
 
   const handleQuickChipSelect = (chipText: string) => {
-    setMessage(currentMessage => currentMessage ? `${currentMessage}\n${chipText}` : chipText);
+    let newText = chipText;
+     if (customer) {
+        newText = newText.replace(/{{customerName}}/g, customer.name);
+    }
+    newText = newText.replace(/{{parts}}/g, ticket.parts.join(', '));
+    
+    setMessage(currentMessage => currentMessage ? `${currentMessage}\n${newText}` : newText);
   }
 
   const handleSend = () => {
@@ -169,8 +178,8 @@ export function ReplyComposer({ ticket, customer, onSendMessage }: ReplyComposer
                 <DialogHeader>
                     <DialogTitle>Preview Message</DialogTitle>
                 </DialogHeader>
-                <div className="prose prose-sm dark:prose-invert rounded-md border p-4 bg-muted">
-                    <p>{message}</p>
+                <div className="prose prose-sm dark:prose-invert rounded-md border p-4 bg-muted max-h-[50vh] overflow-y-auto">
+                    <p className="whitespace-pre-wrap">{message}</p>
                 </div>
                 <DialogFooter>
                     <DialogClose asChild>
