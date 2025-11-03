@@ -129,14 +129,14 @@ export const ReplyComposer = forwardRef<ReplyComposerRef, ReplyComposerProps>(({
     <div className="flex-shrink-0 mt-auto pt-4 pb-2 bg-background sticky bottom-0">
       <Drawer open={isDrawerOpen} onOpenChange={setIsDrawerOpen} direction="right">
         <Dialog>
-            <div className="border rounded-lg p-2 bg-card">
+            <div className="border rounded-2xl p-2 bg-card shadow-sm">
                 <div className="grid gap-2">
                     <Textarea
                         ref={textareaRef}
                         placeholder={`Reply to ${customer?.name || 'customer'}...`}
                         value={message}
                         onChange={(e) => setMessage(e.target.value)}
-                        className="border-0 focus-visible:ring-0"
+                        className="border-0 focus-visible:ring-0 resize-none"
                         rows={4}
                     />
                     <div className="flex items-center justify-between">
@@ -174,13 +174,13 @@ export const ReplyComposer = forwardRef<ReplyComposerRef, ReplyComposerProps>(({
                                     ))}
                                 </SelectContent>
                             </Select>
-                            <Button onClick={handleSend}>
+                            <Button onClick={handleSend} size="sm">
                                 <Send className="mr-2" />
                                 Reply
                             </Button>
                         </div>
                     </div>
-                    <div className="flex gap-2 flex-wrap px-2">
+                    <div className="flex gap-2 flex-wrap px-2 pb-2">
                         {quickChips.map(chip => (
                             <button
                                 key={chip.label}
@@ -223,7 +223,7 @@ export const ReplyComposer = forwardRef<ReplyComposerRef, ReplyComposerProps>(({
                   className="w-full text-left p-4 rounded-lg border hover:bg-muted transition-colors"
                 >
                   <p className="font-semibold">{template.name}</p>
-                  <p className="text-sm text-muted-foreground mt-1 truncate">
+                  <p className="text-sm text-muted-foreground mt-1 line-clamp-2">
                     {template.body}
                   </p>
                   <div className="flex gap-2 mt-2">
@@ -239,5 +239,3 @@ export const ReplyComposer = forwardRef<ReplyComposerRef, ReplyComposerProps>(({
   )
 });
 ReplyComposer.displayName = 'ReplyComposer';
-
-    

@@ -30,14 +30,14 @@ import { toast } from "sonner"
 import { Skeleton } from "@/components/ui/skeleton"
 
 
-const channelIcons = {
+const channelIcons: Record<Ticket['channel'], React.ReactNode> = {
   SMS: <MessageSquare className="h-4 w-4 text-muted-foreground" />,
   WhatsApp: <MessageSquare className="h-4 w-4 text-muted-foreground" />,
   Phone: <Phone className="h-4 w-4 text-muted-foreground" />,
   Email: <Mail className="h-4 w-4 text-muted-foreground" />,
 }
 
-const availabilityClasses = {
+const availabilityClasses: Record<string, string> = {
     Available: "bg-green-500",
     Busy: "bg-orange-500",
     Offline: "bg-gray-500",
@@ -50,7 +50,7 @@ function InboxSkeleton() {
                  <TableRow key={i}>
                     <TableCell><Skeleton className="h-5 w-16" /></TableCell>
                     <TableCell><Skeleton className="h-5 w-24" /></TableCell>
-                    <TableCell><Skeleton className="h-5 w-40" /></TableCell>
+                    <TableCell className="max-w-[250px]"><Skeleton className="h-5 w-full" /></TableCell>
                     <TableCell><Skeleton className="h-5 w-32" /></TableCell>
                     <TableCell><Skeleton className="h-5 w-24" /></TableCell>
                     <TableCell><Skeleton className="h-8 w-8 rounded-full" /></TableCell>
@@ -120,6 +120,7 @@ export default function InboxPage() {
             </div>
             <div className="flex items-center gap-2">
                 <Button variant="outline" onClick={handleSimulateMissedCall}>
+                  <PlusCircle className="mr-2 h-4 w-4" />
                   Simulate Missed Call
                 </Button>
                 <DropdownMenu>
@@ -205,8 +206,8 @@ export default function InboxPage() {
                         </Link>
                     </div>
                   </TableCell>
-                  <TableCell>
-                    <span className="truncate">{ticket.parts.join(', ')}</span>
+                  <TableCell className="max-w-[250px]">
+                    <span className="line-clamp-1">{ticket.parts.join(', ')}</span>
                   </TableCell>
                   <TableCell>
                     <div className="flex items-center gap-2">

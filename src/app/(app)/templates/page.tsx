@@ -50,7 +50,7 @@ export default function TemplatesPage() {
                 {templates.map((template) => (
                   <TableRow key={template.id} className="cursor-pointer hover:bg-muted/50">
                     <TableCell className="font-medium">{template.name}</TableCell>
-                    <TableCell className="text-muted-foreground truncate max-w-sm">{template.body}</TableCell>
+                    <TableCell className="text-muted-foreground truncate max-w-sm line-clamp-1">{template.body}</TableCell>
                     <TableCell>
                       <div className="flex gap-1">
                           {template.tags.map(tag => <Badge key={tag} variant="secondary">{tag}</Badge>)}
