@@ -1,7 +1,7 @@
 
 "use client"
 
-import { useState } from "react"
+import { useState, useImperativeHandle, forwardRef, useRef } from "react"
 import {
   Drawer,
   DrawerContent,
@@ -29,7 +29,7 @@ import {
   Mail,
   Phone,
 } from "lucide-react"
-import { templates, Ticket, Customer, Message } from "@/lib/store"
+import { templates, Ticket, Customer, Message, Channel } from "@/lib/store"
 import {
   Select,
   SelectContent,
@@ -39,11 +39,17 @@ import {
 } from "@/components/ui/select"
 import { ScrollArea } from "./ui/scroll-area"
 import { Badge } from "./ui/badge"
+import React from "react"
 
 interface ReplyComposerProps {
   ticket: Ticket
   customer: Customer | undefined
   onSendMessage: (message: Omit<Message, 'id' | 'createdAt' | 'senderName'>) => void
+}
+
+export interface ReplyComposerRef {
+    setChannel: (channel: Channel) => void;
+    focus: () => void;
 }
 
 const channelIcons: { [key: string]: React.ReactNode } = {
@@ -61,10 +67,20 @@ const quickChips = [
 ]
 
 
-export function ReplyComposer({ ticket, customer, onSendMessage }: ReplyComposerProps) {
+export const ReplyComposer = forwardRef<ReplyComposerRef, ReplyComposerProps>(({ ticket, customer, onSendMessage }, ref) => {
   const [message, setMessage] = useState("")
-  const [channel, setChannel] = useState(ticket.channel)
+  const [channel, setChannel] = useState<Channel>(ticket.channel)
   const [isDrawerOpen, setIsDrawerOpen] = useState(false)
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  useImperativeHandle(ref, () => ({
+    setChannel: (newChannel: Channel) => {
+        setChannel(newChannel);
+    },
+    focus: () => {
+        textareaRef.current?.focus();
+    }
+  }));
 
   const handleTemplateSelect = (templateBody: string) => {
     let newBody = templateBody;
@@ -114,6 +130,7 @@ export function ReplyComposer({ ticket, customer, onSendMessage }: ReplyComposer
             <div className="border rounded-lg p-2 bg-card">
                 <div className="grid gap-2">
                     <Textarea
+                        ref={textareaRef}
                         placeholder={`Reply to ${customer?.name || 'customer'}...`}
                         value={message}
                         onChange={(e) => setMessage(e.target.value)}
@@ -218,4 +235,5 @@ export function ReplyComposer({ ticket, customer, onSendMessage }: ReplyComposer
       </Drawer>
     </div>
   )
-}
+});
+ReplyComposer.displayName = 'ReplyComposer';

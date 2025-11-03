@@ -1,7 +1,7 @@
 
 "use client"
 
-import { tickets, customers, messages, Message, Ticket } from "@/lib/store"
+import { tickets, customers, messages, Message, Ticket, Customer } from "@/lib/store"
 import { notFound } from "next/navigation"
 import {
   Card,
@@ -35,8 +35,12 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import { ReplyComposer } from "@/components/reply-composer"
+import { ReplyComposer, ReplyComposerRef } from "@/components/reply-composer"
 import React from "react"
+import { Label } from "@/components/ui/label"
+import { Switch } from "@/components/ui/switch"
+import { Textarea } from "@/components/ui/textarea"
+import { cn } from "@/lib/utils"
 
 const channelIcons: { [key: string]: React.ReactNode } = {
   SMS: <MessageSquare className="h-4 w-4 text-muted-foreground" />,
@@ -48,6 +52,7 @@ const channelIcons: { [key: string]: React.ReactNode } = {
 export default function TicketDetailsPage({ params }: { params: { id: string } }) {
   const [ticket, setTicket] = React.useState<Ticket | undefined>(tickets.find((t) => t.id === params.id));
   const [ticketMessages, setTicketMessages] = React.useState<Message[]>(messages.filter(m => m.ticketId === params.id));
+  const replyComposerRef = React.useRef<ReplyComposerRef>(null);
 
   if (!ticket) {
     notFound()
@@ -68,6 +73,15 @@ export default function TicketDetailsPage({ params }: { params: { id: string } }
     setTicket(prev => prev ? {...prev, updatedAt: new Date().toISOString()} : undefined);
   };
 
+  const handleSendSmsClick = () => {
+    replyComposerRef.current?.setChannel('SMS');
+    replyComposerRef.current?.focus();
+  };
+
+  const getCustomerPreviousTickets = (customer: Customer | undefined) => {
+    if (!customer) return [];
+    return tickets.filter(t => t.customerId === customer.id && t.id !== ticket?.id);
+  }
 
   return (
     <div className="flex flex-col h-full">
@@ -156,7 +170,7 @@ export default function TicketDetailsPage({ params }: { params: { id: string } }
 
         {/* Right Column: Metadata */}
         <div className="lg:col-span-1 overflow-y-auto">
-          <Tabs defaultValue="summary" className="w-full">
+          <Tabs defaultValue="customer" className="w-full">
             <TabsList className="grid w-full grid-cols-4">
               <TabsTrigger value="summary">Summary</TabsTrigger>
               <TabsTrigger value="customer">Customer</TabsTrigger>
@@ -191,11 +205,14 @@ export default function TicketDetailsPage({ params }: { params: { id: string } }
             </TabsContent>
             <TabsContent value="customer">
               <Card>
-                <CardHeader>
+                <CardHeader className="flex flex-row justify-between items-center">
                   <CardTitle>Customer Details</CardTitle>
+                  <Button variant="outline" size="sm" onClick={handleSendSmsClick}>
+                    <MessageSquare className="mr-2 h-4 w-4" /> Send SMS
+                  </Button>
                 </CardHeader>
                 {customer && (
-                    <CardContent className="space-y-2">
+                    <CardContent className="space-y-4">
                         <div className="flex items-center gap-3">
                             <Avatar className="h-12 w-12">
                                 {customerAvatar && <AvatarImage src={customerAvatar.imageUrl} alt={customer.name} data-ai-hint="person face" />}
@@ -206,13 +223,53 @@ export default function TicketDetailsPage({ params }: { params: { id: string } }
                                 <Link href={`/customers/${customer.id}`} className="text-sm text-primary hover:underline">View Profile</Link>
                             </div>
                         </div>
-                        <div className="flex items-center gap-3 pt-2">
-                            <Mail className="w-4 h-4 text-muted-foreground" />
-                            <span className="text-sm">{customer.email || 'No email'}</span>
+                        <div className="space-y-2 text-sm">
+                            <div className="flex items-center gap-3">
+                                <Mail className="w-4 h-4 text-muted-foreground" />
+                                <span>{customer.email || 'No email'}</span>
+                            </div>
+                            <div className="flex items-center gap-3">
+                                <Phone className="w-4 h-4 text-muted-foreground" />
+                                <span>{customer.phone}</span>
+                            </div>
                         </div>
-                        <div className="flex items-center gap-3">
-                            <Phone className="w-4 h-4 text-muted-foreground" />
-                            <span className="text-sm">{customer.phone}</span>
+                        <div className="space-y-2">
+                            <Label htmlFor="customer-notes">Notes</Label>
+                            <Textarea id="customer-notes" defaultValue={customer.notes} placeholder="Add notes about this customer..." />
+                        </div>
+                        <div className="flex items-center justify-between rounded-lg border p-3">
+                            <div className="space-y-0.5">
+                                <Label>Opted-out of marketing</Label>
+                            </div>
+                            <Switch defaultChecked={customer.optOut} />
+                        </div>
+                        <div>
+                            <h4 className="font-medium text-sm mb-2">Previous Tickets</h4>
+                            <div className="space-y-2">
+                                {getCustomerPreviousTickets(customer).length > 0 ? (
+                                    getCustomerPreviousTickets(customer).map(prevTicket => (
+                                        <Link key={prevTicket.id} href={`/ticket/${prevTicket.id}`} className="block">
+                                            <div className="flex justify-between items-center p-2 rounded-md hover:bg-muted">
+                                                <div className="truncate">
+                                                    <span className="text-sm font-medium">{prevTicket.parts.join(', ')}</span>
+                                                    <p className="text-xs text-muted-foreground">#{prevTicket.id}</p>
+                                                </div>
+                                                <Badge variant={prevTicket.status === 'New' ? 'default' : prevTicket.status === 'In review' ? 'secondary' : 'outline'}
+                                                  className={cn(
+                                                    prevTicket.status === 'New' && "bg-emerald-500/20 text-emerald-500 border-emerald-500/20",
+                                                    prevTicket.status === 'In review' && "bg-blue-500/20 text-blue-500 border-blue-500/20",
+                                                    "dark:text-white"
+                                                  )}
+                                                >
+                                                  {prevTicket.status}
+                                                </Badge>
+                                            </div>
+                                        </Link>
+                                    ))
+                                ) : (
+                                    <p className="text-xs text-muted-foreground text-center py-4">No previous tickets for this customer.</p>
+                                )}
+                            </div>
                         </div>
                     </CardContent>
                 )}
@@ -246,7 +303,7 @@ export default function TicketDetailsPage({ params }: { params: { id: string } }
           </Tabs>
         </div>
       </div>
-       <ReplyComposer ticket={ticket} customer={customer} onSendMessage={handleSendMessage} />
+       <ReplyComposer ref={replyComposerRef} ticket={ticket} customer={customer} onSendMessage={handleSendMessage} />
     </div>
   )
 }
