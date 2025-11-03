@@ -95,9 +95,10 @@ function MessageSkeleton() {
 
 export default function TicketDetailsPage({ params }: { params: { id: string } }) {
   const { tickets, messages, updateTicket, addMessage, isLoading } = useAppState();
+  const id = params.id;
 
-  const ticket = tickets.find((t) => t.id === params.id);
-  const ticketMessages = messages.filter(m => m.ticketId === params.id).sort((a,b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+  const ticket = tickets.find((t) => t.id === id);
+  const ticketMessages = messages.filter(m => m.ticketId === id).sort((a,b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
 
   const [requestedParts, setRequestedParts] = React.useState(ticket?.parts || []);
   const replyComposerRef = React.useRef<ReplyComposerRef>(null);
@@ -505,3 +506,5 @@ export default function TicketDetailsPage({ params }: { params: { id: string } }
     </div>
   )
 }
+
+    
