@@ -13,7 +13,7 @@ import {
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { ArrowLeft, MoreVertical, MessageSquare, Phone, Mail, Clock, PlusCircle, X, FilePlus, UserCheck, Tag, Info } from "lucide-react"
+import { ArrowLeft, MoreVertical, MessageSquare, Phone, Mail, Clock, PlusCircle, X, FilePlus, UserCheck, Tag, Info, Bot } from "lucide-react"
 import Link from "next/link"
 import { PlaceHolderImages } from "@/lib/placeholder-images"
 import {
@@ -47,6 +47,8 @@ import { Textarea } from "@/components/ui/textarea"
 import { cn } from "@/lib/utils"
 import { Input } from "@/components/ui/input"
 import { useAppState } from "@/lib/context/app-state-provider"
+import { toast } from "sonner"
+import { Skeleton } from "@/components/ui/skeleton"
 
 const channelIcons: { [key: string]: React.ReactNode } = {
   SMS: <MessageSquare className="h-4 w-4 text-muted-foreground" />,
@@ -69,8 +71,29 @@ const timelineEventIcons: { [key: string]: React.ReactNode } = {
     'info': <Info className="h-4 w-4" />,
 };
 
+function MessageSkeleton() {
+    return (
+        <>
+            <div className="flex gap-3">
+                 <Skeleton className="h-9 w-9 rounded-full" />
+                 <div className="flex-1 space-y-2">
+                    <Skeleton className="h-4 w-[150px]" />
+                    <Skeleton className="h-12 w-full" />
+                 </div>
+            </div>
+             <div className="flex flex-row-reverse gap-3">
+                 <Skeleton className="h-9 w-9 rounded-full" />
+                 <div className="flex-1 space-y-2">
+                    <Skeleton className="h-4 w-[150px] ml-auto" />
+                    <Skeleton className="h-16 w-full" />
+                 </div>
+            </div>
+        </>
+    )
+}
+
 export default function TicketDetailsPage({ params }: { params: { id: string } }) {
-  const { tickets, messages, updateTicket, addMessage } = useAppState();
+  const { tickets, messages, updateTicket, addMessage, isLoading } = useAppState();
 
   const ticket = tickets.find((t) => t.id === params.id);
   const ticketMessages = messages.filter(m => m.ticketId === params.id);
@@ -84,16 +107,19 @@ export default function TicketDetailsPage({ params }: { params: { id: string } }
     }
   }, [ticket]);
 
-  if (!ticket) {
-    // A better implementation would use a global state manager or fetch from a server.
-    return (
+  if (isLoading) {
+       return (
         <div className="flex h-full items-center justify-center">
             <div className="text-center">
                 <p className="text-lg font-semibold">Loading ticket...</p>
-                <p className="text-muted-foreground">Or ticket could not be found.</p>
+                <p className="text-muted-foreground">Please wait a moment.</p>
             </div>
         </div>
     );
+  }
+
+  if (!ticket) {
+    return notFound();
   }
   
   // Mock timeline data
@@ -127,6 +153,9 @@ export default function TicketDetailsPage({ params }: { params: { id: string } }
     }
     addMessage(messageToAdd);
     updateTicket(ticket.id, { updatedAt: new Date().toISOString(), parts: requestedParts });
+    toast.success("Reply sent", {
+        description: `Message sent to ${customer?.name} via ${newMessage.channel}.`
+    })
   };
   
   const handlePartChange = (index: number, value: string) => {
@@ -147,6 +176,7 @@ export default function TicketDetailsPage({ params }: { params: { id: string } }
   const handleSendSmsClick = () => {
     replyComposerRef.current?.setChannel('SMS');
     replyComposerRef.current?.focus();
+    toast.info("Switched to SMS channel");
   };
 
   const getCustomerPreviousTickets = (customer: Customer | undefined) => {
@@ -156,6 +186,10 @@ export default function TicketDetailsPage({ params }: { params: { id: string } }
 
   const handleAssignUser = (userId: string) => {
     updateTicket(ticket.id, { assignedToUserId: userId });
+     const user = users.find(u => u.id === userId);
+    toast.success("Ticket assigned", {
+        description: `Ticket #${ticket.id} assigned to ${user?.name}.`
+    })
   };
 
   return (
@@ -226,31 +260,42 @@ export default function TicketDetailsPage({ params }: { params: { id: string } }
                     <CardTitle>Conversation</CardTitle>
                 </CardHeader>
                 <CardContent className="flex-1 overflow-y-auto space-y-4">
-                    {ticketMessages.map(message => (
-                        <div key={message.id} className={`flex gap-3 ${message.direction === 'outbound' ? 'flex-row-reverse' : ''}`}>
-                            <Avatar className="h-9 w-9">
-                                {message.direction === 'outbound' && userAvatar && <AvatarImage src={userAvatar.imageUrl} alt="Staff" data-ai-hint="person face" />}
-                                {message.direction === 'inbound' && customerAvatar && <AvatarImage src={customerAvatar.imageUrl} alt="Customer" data-ai-hint="person face" />}
-                                <AvatarFallback>{message.senderName.charAt(0)}</AvatarFallback>
-                            </Avatar>
-                            <div className={`flex-1 space-y-1 ${message.direction === 'outbound' ? 'text-right' : ''}`}>
-                                <div className={`flex items-center gap-2 ${message.direction === 'outbound' ? 'flex-row-reverse' : ''}`}>
-                                    <p className="font-medium">{message.senderName}</p>
-                                    <p className="text-xs text-muted-foreground">{new Date(message.createdAt).toLocaleString()}</p>
-                                </div>
-                                <div className={`p-3 rounded-lg ${message.direction === 'inbound' ? 'bg-muted' : 'bg-primary text-primary-foreground'}`}>
-                                    <p className="text-sm whitespace-pre-wrap">{message.body}</p>
-                                    {message.media && message.media.length > 0 && (
-                                        <div className={`mt-2 flex gap-2 ${message.direction === 'outbound' ? 'justify-end' : ''}`}>
-                                            {message.media.map((url, index) => (
-                                                <img key={index} src={url} alt="media attachment" className="max-w-[150px] rounded-md" />
-                                            ))}
-                                        </div>
-                                    )}
+                    {isLoading ? <MessageSkeleton /> : ticketMessages.length > 0 ? (
+                        ticketMessages.map(message => (
+                            <div key={message.id} className={`flex gap-3 ${message.direction === 'outbound' ? 'flex-row-reverse' : ''}`}>
+                                <Avatar className="h-9 w-9">
+                                    {message.direction === 'outbound' && userAvatar && <AvatarImage src={userAvatar.imageUrl} alt="Staff" data-ai-hint="person face" />}
+                                    {message.direction === 'inbound' && customerAvatar && <AvatarImage src={customerAvatar.imageUrl} alt="Customer" data-ai-hint="person face" />}
+                                    <AvatarFallback>{message.senderName.charAt(0)}</AvatarFallback>
+                                </Avatar>
+                                <div className={`flex-1 space-y-1 ${message.direction === 'outbound' ? 'text-right' : ''}`}>
+                                    <div className={`flex items-center gap-2 ${message.direction === 'outbound' ? 'flex-row-reverse' : ''}`}>
+                                        <p className="font-medium">{message.senderName}</p>
+                                        <p className="text-xs text-muted-foreground">{new Date(message.createdAt).toLocaleString()}</p>
+                                    </div>
+                                    <div className={`p-3 rounded-lg ${message.direction === 'inbound' ? 'bg-muted' : 'bg-primary text-primary-foreground'}`}>
+                                        <p className="text-sm whitespace-pre-wrap">{message.body}</p>
+                                        {message.media && message.media.length > 0 && (
+                                            <div className={`mt-2 flex gap-2 ${message.direction === 'outbound' ? 'justify-end' : ''}`}>
+                                                {message.media.map((url, index) => (
+                                                    <img key={index} src={url} alt="media attachment" className="max-w-[150px] rounded-md" />
+                                                ))}
+                                            </div>
+                                        )}
+                                    </div>
                                 </div>
                             </div>
+                        ))
+                    ) : (
+                        <div className="text-center py-12 text-muted-foreground">
+                            <Bot className="mx-auto h-12 w-12" />
+                            <h3 className="mt-4 text-lg font-semibold">No Messages Yet</h3>
+                            <p className="mt-1 text-sm">Start the conversation by sending a message or using a template.</p>
+                             <Button variant="outline" className="mt-4" onClick={() => replyComposerRef.current?.focus()}>
+                                <MessageSquare className="mr-2 h-4 w-4" /> Send Message
+                            </Button>
                         </div>
-                    ))}
+                    )}
                 </CardContent>
             </Card>
         </div>

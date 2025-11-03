@@ -17,7 +17,7 @@ import {
   CardFooter
 } from "@/components/ui/card"
 import { templates } from "@/lib/store"
-import { PlusCircle } from "lucide-react"
+import { PlusCircle, FileText } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 
 export default function TemplatesPage() {
@@ -36,38 +36,52 @@ export default function TemplatesPage() {
           <CardDescription>Manage your saved response templates.</CardDescription>
         </CardHeader>
         <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Name</TableHead>
-                <TableHead>Preview</TableHead>
-                <TableHead>Tags</TableHead>
-                <TableHead className="text-right">Variables</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {templates.map((template) => (
-                <TableRow key={template.id} className="cursor-pointer hover:bg-muted/50">
-                  <TableCell className="font-medium">{template.name}</TableCell>
-                  <TableCell className="text-muted-foreground truncate max-w-sm">{template.body}</TableCell>
-                  <TableCell>
-                    <div className="flex gap-1">
-                        {template.tags.map(tag => <Badge key={tag} variant="secondary">{tag}</Badge>)}
-                    </div>
-                  </TableCell>
-                  <TableCell className="text-right text-xs text-muted-foreground">
-                    {template.variables.map(v => `{{${v}}}`).join(', ')}
-                  </TableCell>
+          {templates.length > 0 ? (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Name</TableHead>
+                  <TableHead>Preview</TableHead>
+                  <TableHead>Tags</TableHead>
+                  <TableHead className="text-right">Variables</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </CardContent>
-        <CardFooter>
-            <div className="text-xs text-muted-foreground">
-                Showing <strong>1-{templates.length}</strong> of <strong>{templates.length}</strong> templates.
+              </TableHeader>
+              <TableBody>
+                {templates.map((template) => (
+                  <TableRow key={template.id} className="cursor-pointer hover:bg-muted/50">
+                    <TableCell className="font-medium">{template.name}</TableCell>
+                    <TableCell className="text-muted-foreground truncate max-w-sm">{template.body}</TableCell>
+                    <TableCell>
+                      <div className="flex gap-1">
+                          {template.tags.map(tag => <Badge key={tag} variant="secondary">{tag}</Badge>)}
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-right text-xs text-muted-foreground">
+                      {template.variables.map(v => `{{${v}}}`).join(', ')}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          ) : (
+            <div className="text-center py-12 text-muted-foreground">
+                <FileText className="mx-auto h-12 w-12" />
+                <h3 className="mt-4 text-lg font-semibold">No Templates Yet</h3>
+                <p className="mt-1 text-sm">Create your first template to speed up your replies.</p>
+                <Button className="mt-4">
+                  <PlusCircle className="mr-2 h-4 w-4" />
+                  Create Template
+                </Button>
             </div>
-        </CardFooter>
+          )}
+        </CardContent>
+        {templates.length > 0 && (
+          <CardFooter>
+              <div className="text-xs text-muted-foreground">
+                  Showing <strong>1-{templates.length}</strong> of <strong>{templates.length}</strong> templates.
+              </div>
+          </CardFooter>
+        )}
       </Card>
     </div>
   )

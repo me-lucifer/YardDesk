@@ -21,11 +21,14 @@ import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuCheckboxItem, DropdownMenuRadioGroup, DropdownMenuRadioItem } from "@/components/ui/dropdown-menu"
-import { ListFilter, Search, MessageSquare, Phone, Mail, Car, Clock } from "lucide-react"
+import { ListFilter, Search, MessageSquare, Phone, Mail, Car, Clock, PlusCircle } from "lucide-react"
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar"
 import { PlaceHolderImages } from "@/lib/placeholder-images"
 import React from "react"
 import { useAppState } from "@/lib/context/app-state-provider"
+import { toast } from "sonner"
+import { Skeleton } from "@/components/ui/skeleton"
+
 
 const channelIcons = {
   SMS: <MessageSquare className="h-4 w-4 text-muted-foreground" />,
@@ -40,8 +43,26 @@ const availabilityClasses = {
     Offline: "bg-gray-500",
 }
 
+function InboxSkeleton() {
+    return (
+        <TableBody>
+            {Array.from({ length: 10 }).map((_, i) => (
+                 <TableRow key={i}>
+                    <TableCell><Skeleton className="h-5 w-16" /></TableCell>
+                    <TableCell><Skeleton className="h-5 w-24" /></TableCell>
+                    <TableCell><Skeleton className="h-5 w-40" /></TableCell>
+                    <TableCell><Skeleton className="h-5 w-32" /></TableCell>
+                    <TableCell><Skeleton className="h-5 w-24" /></TableCell>
+                    <TableCell><Skeleton className="h-8 w-8 rounded-full" /></TableCell>
+                    <TableCell><Skeleton className="h-5 w-20" /></TableCell>
+                 </TableRow>
+            ))}
+        </TableBody>
+    )
+}
+
 export default function InboxPage() {
-  const { tickets, addTicket, addMessage } = useAppState();
+  const { tickets, addTicket, addMessage, isLoading } = useAppState();
   
   const savedViews = ["All", "New Today", "Waiting Info", "Breaching SLA", "Assigned to me"];
 
@@ -78,6 +99,7 @@ export default function InboxPage() {
 
     addTicket(newTicket);
     addMessage(newMessage);
+    toast.success("Simulated missed call", { description: `New ticket #${newTicketId} created.`});
   };
 
   return (
@@ -156,8 +178,9 @@ export default function InboxPage() {
                 <TableHead className="text-right">Last Updated</TableHead>
               </TableRow>
             </TableHeader>
+            {isLoading ? <InboxSkeleton /> : (
             <TableBody>
-              {tickets.map((ticket) => {
+              {tickets.length > 0 ? tickets.map((ticket) => {
                   const customer = customers.find(c => c.id === ticket.customerId);
                   const assignedUser = users.find(u => u.id === ticket.assignedToUserId);
                   const userAvatarMeta = PlaceHolderImages.find(p => p.id === assignedUser?.avatarUrl);
@@ -221,8 +244,22 @@ export default function InboxPage() {
                   <TableCell className="text-right text-xs text-muted-foreground">{new Date(ticket.updatedAt).toLocaleDateString()}</TableCell>
                 </TableRow>
                   )
-            })}
+            }) : (
+                 <TableRow>
+                    <TableCell colSpan={7} className="h-48 text-center">
+                        <div className="flex flex-col items-center gap-4">
+                            <h3 className="text-xl font-semibold">Inbox Zero!</h3>
+                            <p className="text-muted-foreground">You've cleared all your tickets. Great job!</p>
+                             <Button variant="outline" onClick={handleSimulateMissedCall}>
+                                <PlusCircle className="mr-2 h-4 w-4" />
+                                Simulate Missed Call
+                            </Button>
+                        </div>
+                    </TableCell>
+                </TableRow>
+            )}
             </TableBody>
+            )}
           </Table>
         </CardContent>
       </Card>

@@ -1,7 +1,8 @@
 import type { Metadata } from 'next';
 import './globals.css';
 import { ThemeProvider } from '@/components/theme-provider';
-import { Toaster } from '@/components/ui/toaster';
+import { Toaster as OldToaster } from '@/components/ui/toaster';
+
 
 export const metadata: Metadata = {
   title: 'YardDesk',
@@ -28,7 +29,7 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           {children}
-          <Toaster />
+          <OldToaster />
         </ThemeProvider>
       </body>
     </html>

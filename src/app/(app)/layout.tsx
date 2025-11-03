@@ -2,6 +2,7 @@ import { Header } from "@/components/layout/header";
 import { AppSidebar } from "@/components/layout/sidebar";
 import { AppStateProvider } from "@/lib/context/app-state-provider";
 import { SidebarProvider } from "@/components/ui/sidebar";
+import { Toaster } from "@/components/ui/sonner";
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -14,6 +15,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
               {children}
             </main>
           </div>
+          <Toaster />
       </SidebarProvider>
     </AppStateProvider>
   );

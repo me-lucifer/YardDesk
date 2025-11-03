@@ -19,6 +19,8 @@ import { PlusCircle } from "lucide-react"
 import { useAppState } from '@/lib/context/app-state-provider';
 import { Ticket, Message, Channel } from '@/lib/store';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
+import { toast } from 'sonner';
+
 
 export const NewTicketDialog = React.forwardRef((props, ref) => {
     const [open, setOpen] = useState(false);
@@ -81,6 +83,10 @@ export const NewTicketDialog = React.forwardRef((props, ref) => {
 
         addTicket(newTicket);
         addMessage(initialMessage);
+
+        toast.success("Ticket created", {
+            description: `Ticket #${newTicket.id} for ${newTicket.vehicle.plate} has been created.`
+        })
 
         setOpen(false);
         // Reset form

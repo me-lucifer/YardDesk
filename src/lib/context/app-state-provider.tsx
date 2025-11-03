@@ -1,7 +1,7 @@
 
 "use client";
 
-import React, { createContext, useContext, useState, ReactNode } from 'react';
+import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
 import { tickets as initialTickets, messages as initialMessages, customers as initialCustomers, Ticket, Message, Customer } from '@/lib/store';
 
 interface AppState {
@@ -12,14 +12,28 @@ interface AppState {
   updateTicket: (ticketId: string, updates: Partial<Ticket>) => void;
   addMessage: (message: Message) => void;
   addCustomer: (customer: Customer) => void;
+  isLoading: boolean;
 }
 
 const AppStateContext = createContext<AppState | undefined>(undefined);
 
 export const AppStateProvider = ({ children }: { children: ReactNode }) => {
-  const [tickets, setTickets] = useState<Ticket[]>(initialTickets);
-  const [messages, setMessages] = useState<Message[]>(initialMessages);
-  const [customers, setCustomers] = useState<Customer[]>(initialCustomers);
+  const [tickets, setTickets] = useState<Ticket[]>([]);
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [customers, setCustomers] = useState<Customer[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    // Simulate loading data
+    const timer = setTimeout(() => {
+      setTickets(initialTickets);
+      setMessages(initialMessages);
+      setCustomers(initialCustomers);
+      setIsLoading(false);
+    }, 1000); // 1 second delay
+
+    return () => clearTimeout(timer);
+  }, []);
 
   const addTicket = (ticket: Ticket) => {
     setTickets(prev => [ticket, ...prev]);
@@ -42,7 +56,7 @@ export const AppStateProvider = ({ children }: { children: ReactNode }) => {
   }
 
   return (
-    <AppStateContext.Provider value={{ tickets, messages, customers, addTicket, updateTicket, addMessage, addCustomer }}>
+    <AppStateContext.Provider value={{ tickets, messages, customers, addTicket, updateTicket, addMessage, addCustomer, isLoading }}>
       {children}
     </AppStateContext.Provider>
   );
