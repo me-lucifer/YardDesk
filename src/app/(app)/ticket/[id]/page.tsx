@@ -1,8 +1,8 @@
 
 "use client"
 
-import { tickets, customers, messages, Message, Ticket, Customer, users, User } from "@/lib/store"
-import { notFound } from "next/navigation"
+import { tickets as initialTickets, customers, messages as initialMessages, Message, Ticket, Customer, users, User } from "@/lib/store"
+import { notFound, useRouter } from "next/navigation"
 import {
   Card,
   CardContent,
@@ -69,13 +69,48 @@ const timelineEventIcons: { [key: string]: React.ReactNode } = {
 };
 
 export default function TicketDetailsPage({ params }: { params: { id: string } }) {
-  const [ticket, setTicket] = React.useState<Ticket | undefined>(tickets.find((t) => t.id === params.id));
-  const [ticketMessages, setTicketMessages] = React.useState<Message[]>(messages.filter(m => m.ticketId === params.id));
+  const router = useRouter();
+  const [allTickets, setAllTickets] = React.useState<Ticket[]>(initialTickets);
+  const [allMessages, setAllMessages] = React.useState<Message[]>(initialMessages);
+  
+  const ticket = allTickets.find((t) => t.id === params.id);
+  const ticketMessages = allMessages.filter(m => m.ticketId === params.id);
+  
   const [requestedParts, setRequestedParts] = React.useState(ticket?.parts || []);
   const replyComposerRef = React.useRef<ReplyComposerRef>(null);
 
+  React.useEffect(() => {
+    if (ticket) {
+      setRequestedParts(ticket.parts);
+    }
+  }, [ticket]);
+
   if (!ticket) {
-    notFound()
+    // This could be a new ticket from simulation, wait for state update
+    // Or just not found. For now, we assume not found if it's not in the initial load.
+    // A better implementation would use a global state manager.
+    React.useEffect(() => {
+      if (!initialTickets.find(t => t.id === params.id)) {
+        // A simple check to see if it was ever a valid ticket
+         // notFound();
+      }
+    }, [params.id]);
+    
+    // To prevent flicker on new ticket creation
+    const isNewTicket = params.id.startsWith('TKT-');
+    if (!ticket && !isNewTicket) {
+      return notFound();
+    }
+    if (!ticket) {
+        return (
+            <div className="flex h-full items-center justify-center">
+                <div className="text-center">
+                    <p className="text-lg font-semibold">Loading ticket...</p>
+                    <p className="text-muted-foreground">Or ticket could not be found.</p>
+                </div>
+            </div>
+        );
+    }
   }
   
   // Mock timeline data
@@ -94,12 +129,15 @@ export default function TicketDetailsPage({ params }: { params: { id: string } }
   ].sort((a,b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
 
 
-
   const customer = customers.find(c => c.id === ticket.customerId);
   const customerAvatar = PlaceHolderImages.find(p => p.id === 'customer-avatar-1');
   
   const assignedUser = users.find(u => u.id === ticket.assignedToUserId);
   const userAvatar = PlaceHolderImages.find(p => p.id === assignedUser?.avatarUrl);
+
+  const updateTicketState = (ticketId: string, updates: Partial<Ticket>) => {
+     setAllTickets(prev => prev.map(t => t.id === ticketId ? {...t, ...updates} : t));
+  };
 
 
   const handleSendMessage = (newMessage: Omit<Message, 'id' | 'createdAt' | 'senderName'>) => {
@@ -109,8 +147,8 @@ export default function TicketDetailsPage({ params }: { params: { id: string } }
         createdAt: new Date().toISOString(),
         senderName: "YardDesk"
     }
-    setTicketMessages(prev => [...prev, messageToAdd]);
-    setTicket(prev => prev ? {...prev, updatedAt: new Date().toISOString(), parts: requestedParts} : undefined);
+    setAllMessages(prev => [...prev, messageToAdd]);
+    updateTicketState(ticket.id, { updatedAt: new Date().toISOString(), parts: requestedParts });
   };
   
   const handlePartChange = (index: number, value: string) => {
@@ -135,11 +173,11 @@ export default function TicketDetailsPage({ params }: { params: { id: string } }
 
   const getCustomerPreviousTickets = (customer: Customer | undefined) => {
     if (!customer) return [];
-    return tickets.filter(t => t.customerId === customer.id && t.id !== ticket?.id);
+    return allTickets.filter(t => t.customerId === customer.id && t.id !== ticket?.id);
   }
 
   const handleAssignUser = (userId: string) => {
-    setTicket(prev => prev ? { ...prev, assignedToUserId: userId } : undefined);
+    updateTicketState(ticket.id, { assignedToUserId: userId });
   };
 
   return (
@@ -442,5 +480,3 @@ export default function TicketDetailsPage({ params }: { params: { id: string } }
     </div>
   )
 }
-
-    

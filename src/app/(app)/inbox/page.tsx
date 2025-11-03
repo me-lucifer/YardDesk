@@ -16,7 +16,7 @@ import {
   CardContent,
   CardHeader,
 } from "@/components/ui/card"
-import { tickets, customers, users } from "@/lib/store"
+import { tickets as initialTickets, customers, users, Ticket, Message, messages as initialMessages } from "@/lib/store"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -24,6 +24,7 @@ import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuLab
 import { ListFilter, Search, MessageSquare, Phone, Mail, Car, Clock } from "lucide-react"
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar"
 import { PlaceHolderImages } from "@/lib/placeholder-images"
+import React from "react"
 
 const channelIcons = {
   SMS: <MessageSquare className="h-4 w-4 text-muted-foreground" />,
@@ -39,7 +40,45 @@ const availabilityClasses = {
 }
 
 export default function InboxPage() {
+  const [tickets, setTickets] = React.useState<Ticket[]>(initialTickets);
+  const [messages, setMessages] = React.useState<Message[]>(initialMessages);
+  
   const savedViews = ["All", "New Today", "Waiting Info", "Breaching SLA", "Assigned to me"];
+
+  const handleSimulateMissedCall = () => {
+    const newTicketId = `TKT-${Date.now()}`;
+    const newCustomerId = 'CUST-002'; // Using an existing customer for simulation
+    const customer = customers.find(c => c.id === newCustomerId);
+
+    const newTicket: Ticket = {
+      id: newTicketId,
+      status: 'New',
+      channel: 'Phone',
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      customerId: newCustomerId,
+      vehicle: { make: 'Ford', model: 'Fiesta', year: 2020, plate: 'AB12 CDE' },
+      parts: ['front bumper'],
+      assignedToUserId: null,
+      priority: 'High',
+      slaDueAt: new Date(Date.now() + 4 * 60 * 60 * 1000).toISOString(),
+      lastMessagePreview: 'Customer replied: AB12 CDE, front bumper'
+    };
+
+    const newMessage: Message = {
+      id: `MSG-${Date.now()}`,
+      ticketId: newTicketId,
+      direction: 'inbound',
+      channel: 'SMS',
+      body: 'Customer replied: AB12 CDE, front bumper',
+      media: [],
+      createdAt: new Date().toISOString(),
+      senderName: customer?.name || "Unknown Customer"
+    };
+
+    setTickets(prevTickets => [newTicket, ...prevTickets]);
+    setMessages(prevMessages => [...prevMessages, newMessage]);
+  };
 
   return (
     <div className="space-y-6">
@@ -65,6 +104,9 @@ export default function InboxPage() {
                 />
             </div>
             <div className="flex items-center gap-2">
+                <Button variant="outline" onClick={handleSimulateMissedCall}>
+                  Simulate Missed Call
+                </Button>
                 <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                     <Button variant="outline" size="sm" className="h-9 gap-1">
@@ -187,5 +229,3 @@ export default function InboxPage() {
     </div>
   )
 }
-
-    
