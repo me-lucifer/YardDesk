@@ -29,7 +29,7 @@ import {
   Mail,
   Phone,
 } from "lucide-react"
-import { templates, Ticket, Customer, Message, Channel } from "@/lib/store"
+import { templates, Ticket, Customer, Message, Channel, users } from "@/lib/store"
 import {
   Select,
   SelectContent,
@@ -72,6 +72,7 @@ export const ReplyComposer = forwardRef<ReplyComposerRef, ReplyComposerProps>(({
   const [channel, setChannel] = useState<Channel>(ticket.channel)
   const [isDrawerOpen, setIsDrawerOpen] = useState(false)
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const currentUser = users[0]; // Assume current user
 
   useImperativeHandle(ref, () => ({
     setChannel: (newChannel: Channel) => {
@@ -118,6 +119,7 @@ export const ReplyComposer = forwardRef<ReplyComposerRef, ReplyComposerProps>(({
         channel: channel,
         body: message,
         media: [],
+        // senderName is added in the parent component
     })
     setMessage("");
   }
@@ -237,3 +239,5 @@ export const ReplyComposer = forwardRef<ReplyComposerRef, ReplyComposerProps>(({
   )
 });
 ReplyComposer.displayName = 'ReplyComposer';
+
+    

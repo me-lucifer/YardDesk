@@ -1,7 +1,7 @@
 
 "use client"
 
-import { tickets, customers, messages, Message, Ticket, Customer } from "@/lib/store"
+import { tickets, customers, messages, Message, Ticket, Customer, users, User } from "@/lib/store"
 import { notFound } from "next/navigation"
 import {
   Card,
@@ -21,6 +21,9 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
+  DropdownMenuLabel,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
 } from "@/components/ui/dropdown-menu"
 import {
   Tabs,
@@ -94,7 +97,10 @@ export default function TicketDetailsPage({ params }: { params: { id: string } }
 
   const customer = customers.find(c => c.id === ticket.customerId);
   const customerAvatar = PlaceHolderImages.find(p => p.id === 'customer-avatar-1');
-  const userAvatar = PlaceHolderImages.find(p => p.id === 'user-avatar-1');
+  
+  const assignedUser = users.find(u => u.id === ticket.assignedToUserId);
+  const userAvatar = PlaceHolderImages.find(p => p.id === assignedUser?.avatarUrl);
+
 
   const handleSendMessage = (newMessage: Omit<Message, 'id' | 'createdAt' | 'senderName'>) => {
     const messageToAdd: Message = {
@@ -132,6 +138,10 @@ export default function TicketDetailsPage({ params }: { params: { id: string } }
     return tickets.filter(t => t.customerId === customer.id && t.id !== ticket?.id);
   }
 
+  const handleAssignUser = (userId: string) => {
+    setTicket(prev => prev ? { ...prev, assignedToUserId: userId } : undefined);
+  };
+
   return (
     <div className="flex flex-col h-full">
        <div className="flex-shrink-0">
@@ -163,7 +173,19 @@ export default function TicketDetailsPage({ params }: { params: { id: string } }
                             <DropdownMenuItem>Closed</DropdownMenuItem>
                         </DropdownMenuContent>
                     </DropdownMenu>
-                    <Button variant="outline">Assign</Button>
+                    <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                            <Button variant="outline">{assignedUser ? assignedUser.name : 'Assign'}</Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent className="w-56">
+                            <DropdownMenuLabel>Assign to</DropdownMenuLabel>
+                            <DropdownMenuRadioGroup value={ticket.assignedToUserId || ''} onValueChange={handleAssignUser}>
+                                {users.map(user => (
+                                    <DropdownMenuRadioItem key={user.id} value={user.id}>{user.name}</DropdownMenuRadioItem>
+                                ))}
+                            </DropdownMenuRadioGroup>
+                        </DropdownMenuContent>
+                    </DropdownMenu>
                     <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                             <Button variant="ghost" size="icon">
@@ -244,7 +266,7 @@ export default function TicketDetailsPage({ params }: { params: { id: string } }
                   </div>
                    <div className="flex items-center justify-between">
                     <span className="text-muted-foreground">Assigned To</span>
-                     <span>{ticket.assignedToUserId || 'Unassigned'}</span>
+                     <span>{assignedUser?.name || 'Unassigned'}</span>
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="text-muted-foreground">SLA</span>
@@ -420,7 +442,5 @@ export default function TicketDetailsPage({ params }: { params: { id: string } }
     </div>
   )
 }
-
-    
 
     
