@@ -99,6 +99,17 @@ export const templates: Template[] = [
     { id: 'TMPL-003', name: 'Request for More Info (VIN)', body: 'Hi {{customerName}}, to make sure we get the exact right part for your {{vehicleMake}} {{vehicleModel}}, could you please provide the VIN?', variables: ['customerName', 'vehicleMake', 'vehicleModel'], tags: ['info', 'request'] },
 ];
 
+const topPartsData = tickets.flatMap(t => t.parts).reduce((acc, part) => {
+    const existing = acc.find(p => p.part === part);
+    if (existing) {
+        existing.count++;
+    } else {
+        acc.push({ part, count: 1 });
+    }
+    return acc;
+}, [] as { part: string; count: number }[]).sort((a, b) => b.count - a.count);
+
+
 export const analyticsData = {
     ticketsByDay: [
         { date: 'Mon', tickets: 3 },
@@ -109,13 +120,14 @@ export const analyticsData = {
         { date: 'Sat', tickets: 2 },
         { date: 'Sun', tickets: 1 },
     ],
-    revenueByMonth: [
-        { month: 'Jan', revenue: 4000 },
-        { month: 'Feb', revenue: 3000 },
-        { month: 'Mar', revenue: 5000 },
-        { month: 'Apr', revenue: 4500 },
-        { month: 'May', revenue: 6000 },
-        { month: 'Jun', revenue: 5500 },
+    topParts: topPartsData,
+    responseTimeDistribution: [
+        { bucket: '<15m', count: 12 },
+        { bucket: '15-30m', count: 25 },
+        { bucket: '30-60m', count: 18 },
+        { bucket: '1-2h', count: 8 },
+        { bucket: '2-4h', count: 5 },
+        { bucket: '>4h', count: 2 },
     ],
     satisfactionData: [
         { name: '5 Stars', value: 400, fill: 'var(--color-emerald)' },

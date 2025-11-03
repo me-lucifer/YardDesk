@@ -11,65 +11,111 @@ import {
   ChartContainer,
   ChartTooltip,
   ChartTooltipContent,
-  ChartLegend,
-  ChartLegendContent,
 } from "@/components/ui/chart"
 import { analyticsData } from "@/lib/store"
-import { Bar, BarChart, CartesianGrid, XAxis, Pie, PieChart, Cell } from "recharts"
+import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from "recharts"
+import { Button } from "@/components/ui/button"
+import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuCheckboxItem } from "@/components/ui/dropdown-menu"
+import { Calendar as CalendarIcon, ListFilter } from "lucide-react"
 
 const barChartConfig = {
   tickets: {
     label: "Tickets",
     color: "hsl(var(--primary))",
   },
-}
-
-const pieChartConfig = {
-    "5 Stars": { label: "5 Stars", color: "hsl(145, 58%, 55%)" },
-    "4 Stars": { label: "4 Stars", color: "hsl(145, 58%, 45%)" },
-    "3 Stars": { label: "3 Stars", color: "hsl(145, 58%, 35%)" },
-    "2 Stars": { label: "2 Stars", color: "hsl(40, 58%, 55%)" },
-    "1 Star": { label: "1 Star", color: "hsl(0, 58%, 55%)" },
+  parts: {
+      label: "Count",
+      color: "hsl(var(--primary))",
+  }
 }
 
 export default function AnalyticsPage() {
   return (
     <div className="space-y-6">
-      <h1 className="text-3xl font-bold tracking-tight">Analytics</h1>
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+      <div className="flex flex-wrap items-center justify-between gap-4">
+        <h1 className="text-3xl font-bold tracking-tight">Analytics</h1>
+        <div className="flex items-center gap-2">
+            <Button variant="outline" className="gap-1.5">
+                <CalendarIcon className="h-4 w-4" />
+                <span>Date range</span>
+            </Button>
+            <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="sm" className="h-9 gap-1">
+                    <ListFilter className="h-3.5 w-3.5" />
+                    <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
+                    Filter
+                    </span>
+                </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                    <DropdownMenuCheckboxItem checked>
+                        Channel
+                    </DropdownMenuCheckboxItem>
+                    <DropdownMenuCheckboxItem>Status</DropdownMenuCheckboxItem>
+                </DropdownMenuContent>
+            </DropdownMenu>
+        </div>
+      </div>
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-5">
         <Card>
           <CardHeader>
-            <CardTitle>Total Revenue</CardTitle>
-            <CardDescription>Last 6 months</CardDescription>
+            <CardTitle>New tickets today</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-4xl font-bold">$28,500</div>
+            <div className="text-4xl font-bold">5</div>
           </CardContent>
         </Card>
         <Card>
           <CardHeader>
-            <CardTitle>Open Tickets</CardTitle>
-            <CardDescription>Currently needing attention</CardDescription>
+            <CardTitle>First response time</CardTitle>
+             <CardDescription>Median</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="text-4xl font-bold">12</div>
+            <div className="text-4xl font-bold">12m</div>
           </CardContent>
         </Card>
         <Card>
           <CardHeader>
-            <CardTitle>Avg. Response Time</CardTitle>
-            <CardDescription>Last 30 days</CardDescription>
+            <CardTitle>Missed-call recovery</CardTitle>
+             <CardDescription>Mock data</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="text-4xl font-bold">2.4 hours</div>
+            <div className="text-4xl font-bold">88%</div>
+          </CardContent>
+        </Card>
+         <Card>
+          <CardHeader>
+            <CardTitle>Close rate</CardTitle>
+             <CardDescription>Mock data</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="text-4xl font-bold">75%</div>
+          </CardContent>
+        </Card>
+         <Card>
+          <CardHeader>
+            <CardTitle>Breaching SLA</CardTitle>
+             <CardDescription>Mock data</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="text-4xl font-bold text-destructive">2</div>
           </CardContent>
         </Card>
       </div>
-      <div className="grid gap-6 md:grid-cols-2">
-        <Card>
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+        <Card className="lg:col-span-2">
           <CardHeader>
-            <CardTitle>Tickets per Day</CardTitle>
-            <CardDescription>Last 7 days</CardDescription>
+            <div className="flex justify-between items-center">
+                <div>
+                    <CardTitle>Tickets per Day</CardTitle>
+                    <CardDescription>Last 7 days</CardDescription>
+                </div>
+                <div className="flex gap-2">
+                    <Button variant="outline" size="sm">7d</Button>
+                    <Button variant="ghost" size="sm">30d</Button>
+                </div>
+            </div>
           </CardHeader>
           <CardContent>
             <ChartContainer config={barChartConfig} className="h-[250px] w-full">
@@ -82,38 +128,48 @@ export default function AnalyticsPage() {
             </ChartContainer>
           </CardContent>
         </Card>
-        <Card>
+         <Card>
           <CardHeader>
-            <CardTitle>Customer Satisfaction</CardTitle>
-            <CardDescription>All-time ratings</CardDescription>
+            <CardTitle>Top Requested Parts</CardTitle>
+            <CardDescription>An overview of the most requested parts.</CardDescription>
           </CardHeader>
-          <CardContent className="flex justify-center">
-             <ChartContainer
-                config={pieChartConfig}
-                className="mx-auto aspect-square h-[250px]"
-                >
-                <PieChart>
-                    <ChartTooltip
-                    cursor={false}
-                    content={<ChartTooltipContent hideLabel />}
+          <CardContent>
+            <ChartContainer config={barChartConfig} className="h-[250px] w-full">
+               <BarChart data={analyticsData.topParts} layout="vertical" margin={{ top: 0, right: 10, left: 0, bottom: 0 }}>
+                    <CartesianGrid horizontal={false} />
+                    <YAxis
+                        dataKey="part"
+                        type="category"
+                        tickLine={false}
+                        axisLine={false}
+                        tickMargin={10}
+                        width={80}
+                        className="text-xs"
                     />
-                    <Pie
-                    data={analyticsData.satisfactionData}
-                    dataKey="value"
-                    nameKey="name"
-                    innerRadius={60}
-                    strokeWidth={5}
-                    >
-                    {analyticsData.satisfactionData.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={entry.fill} />
-                    ))}
-                    </Pie>
-                    <ChartLegend content={<ChartLegendContent nameKey="name" />} />
-                </PieChart>
+                    <XAxis dataKey="count" type="number" hide />
+                    <ChartTooltip content={<ChartTooltipContent />} />
+                    <Bar dataKey="count" fill="var(--color-parts)" radius={5} />
+                </BarChart>
             </ChartContainer>
           </CardContent>
         </Card>
       </div>
+       <Card>
+        <CardHeader>
+            <CardTitle>Response Time Distribution</CardTitle>
+            <CardDescription>Histogram of response times.</CardDescription>
+        </CardHeader>
+        <CardContent>
+             <ChartContainer config={barChartConfig} className="h-[200px] w-full">
+                <BarChart data={analyticsData.responseTimeDistribution} margin={{ top: 20, right: 20, left: -10, bottom: 0}}>
+                    <CartesianGrid vertical={false} />
+                    <XAxis dataKey="bucket" tickLine={false} axisLine={false} tickMargin={8} />
+                    <ChartTooltip content={<ChartTooltipContent />} />
+                    <Bar dataKey="count" fill="var(--color-tickets)" radius={4} />
+                </BarChart>
+            </ChartContainer>
+        </CardContent>
+       </Card>
     </div>
   )
 }
